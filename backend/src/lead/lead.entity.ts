@@ -1,28 +1,57 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+} from 'typeorm';
 
 @Entity()
 export class Lead {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column()
-  fullName: string;
+  @Column({ nullable: true })
+  full_name: string;
 
-  @Column()
+  @Column({ nullable: true })
   phone: string;
 
   @Column({ nullable: true })
-  email?: string;
+  email: string;
 
   @Column({ nullable: true })
-  source?: string;
+  country: string;
 
-  @Column({ default: 'stage-1' }) // Этап по умолчанию
-  stage: string;
+  @Column({ nullable: true })
+  city: string;
 
-  @CreateDateColumn()
-  createdAt: Date;
+  @Column({ nullable: true, type: 'text' })
+  address: string;
 
-  @UpdateDateColumn()
-  updatedAt: Date;
+  @Column({ nullable: true })
+  zipcode: string;
+
+  @Column({ nullable: true })
+  ssn: string;
+
+  @Column({ nullable: true, type: 'date' })
+  birth_date: Date;
+
+  @CreateDateColumn({ type: 'timestamp' })
+  lead_date: Date;
+
+  @Column({ nullable: true })
+  telegram: string;
+
+  @Column({ nullable: true })
+  priority: 'hot' | 'warm' | 'cold';
+
+  @Column({ nullable: true })
+  source: string;
+
+  @Column({ nullable: true })
+  source_subid: string;
+
+  @Column({ nullable: true, type: 'text' })
+  notes: string;
 }

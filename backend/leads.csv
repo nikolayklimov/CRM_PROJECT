@@ -1,0 +1,4 @@
+full_name,phone,email,priority,source
+Анна Петрова,+70000000001,anna@example.com,warm,telegram
+Игорь Смирнов,+70000000002,,hot,facebook
+, +70000000003,oleg@test.com,cold,manual

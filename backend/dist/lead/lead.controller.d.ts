@@ -6,4 +6,5 @@ export declare class LeadController {
     constructor(leadService: LeadService);
     getAll(): Promise<Lead[]>;
     create(dto: CreateLeadDto): Promise<Lead>;
+    importCsv(file: Express.Multer.File): Promise<Lead[]>;
 }

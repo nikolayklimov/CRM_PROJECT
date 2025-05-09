@@ -19,11 +19,11 @@ __decorate([
     __metadata("design:type", Number)
 ], Lead.prototype, "id", void 0);
 __decorate([
-    (0, typeorm_1.Column)(),
+    (0, typeorm_1.Column)({ nullable: true }),
     __metadata("design:type", String)
-], Lead.prototype, "fullName", void 0);
+], Lead.prototype, "full_name", void 0);
 __decorate([
-    (0, typeorm_1.Column)(),
+    (0, typeorm_1.Column)({ nullable: true }),
     __metadata("design:type", String)
 ], Lead.prototype, "phone", void 0);
 __decorate([
@@ -33,19 +33,51 @@ __decorate([
 __decorate([
     (0, typeorm_1.Column)({ nullable: true }),
     __metadata("design:type", String)
+], Lead.prototype, "country", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ nullable: true }),
+    __metadata("design:type", String)
+], Lead.prototype, "city", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ nullable: true, type: 'text' }),
+    __metadata("design:type", String)
+], Lead.prototype, "address", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ nullable: true }),
+    __metadata("design:type", String)
+], Lead.prototype, "zipcode", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ nullable: true }),
+    __metadata("design:type", String)
+], Lead.prototype, "ssn", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ nullable: true, type: 'date' }),
+    __metadata("design:type", Date)
+], Lead.prototype, "birth_date", void 0);
+__decorate([
+    (0, typeorm_1.CreateDateColumn)({ type: 'timestamp' }),
+    __metadata("design:type", Date)
+], Lead.prototype, "lead_date", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ nullable: true }),
+    __metadata("design:type", String)
+], Lead.prototype, "telegram", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ nullable: true }),
+    __metadata("design:type", String)
+], Lead.prototype, "priority", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ nullable: true }),
+    __metadata("design:type", String)
 ], Lead.prototype, "source", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ default: 'stage-1' }),
+    (0, typeorm_1.Column)({ nullable: true }),
     __metadata("design:type", String)
-], Lead.prototype, "stage", void 0);
+], Lead.prototype, "source_subid", void 0);
 __decorate([
-    (0, typeorm_1.CreateDateColumn)(),
-    __metadata("design:type", Date)
-], Lead.prototype, "createdAt", void 0);
-__decorate([
-    (0, typeorm_1.UpdateDateColumn)(),
-    __metadata("design:type", Date)
-], Lead.prototype, "updatedAt", void 0);
+    (0, typeorm_1.Column)({ nullable: true, type: 'text' }),
+    __metadata("design:type", String)
+], Lead.prototype, "notes", void 0);
 exports.Lead = Lead = __decorate([
     (0, typeorm_1.Entity)()
 ], Lead);

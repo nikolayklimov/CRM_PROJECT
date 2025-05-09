@@ -8,10 +8,10 @@ async function bootstrap() {
   try {
     const app = await NestFactory.create(AppModule);  // Здесь создаём приложение, используя AppModule
     const reflector = app.get(Reflector);
-    app.useGlobalGuards(
-      new JwtAuthGuard(),
-      new RolesGuard(reflector),
-    );
+    // app.useGlobalGuards(
+    //   new JwtAuthGuard(),
+    //   new RolesGuard(reflector),
+    // );
     await app.listen(3000); // Прослушивание порта
     console.log('App is running on http://localhost:3000');
   } catch (error) {
