@@ -6,6 +6,7 @@ import { Reflector } from '@nestjs/core';
 
 async function bootstrap() {
   try {
+    console.log('Connected to DB:', process.env.DATABASE_NAME);
     const app = await NestFactory.create(AppModule);  // Здесь создаём приложение, используя AppModule
     const reflector = app.get(Reflector);
     // app.useGlobalGuards(

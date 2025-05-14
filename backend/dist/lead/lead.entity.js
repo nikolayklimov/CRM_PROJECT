@@ -11,6 +11,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Lead = void 0;
 const typeorm_1 = require("typeorm");
+const stage_entity_1 = require("../stage/stage.entity");
 let Lead = class Lead {
 };
 exports.Lead = Lead;
@@ -78,6 +79,30 @@ __decorate([
     (0, typeorm_1.Column)({ nullable: true, type: 'text' }),
     __metadata("design:type", String)
 ], Lead.prototype, "notes", void 0);
+__decorate([
+    (0, typeorm_1.OneToMany)(() => stage_entity_1.Stage, (stage) => stage.lead, { cascade: true }),
+    __metadata("design:type", Array)
+], Lead.prototype, "stages", void 0);
+__decorate([
+    (0, typeorm_1.Column)({
+        type: 'enum',
+        enum: ['new', 'in_work', 'callback', 'cut', 'to_level2', 'to_level3', 'closed'],
+        default: 'new',
+    }),
+    __metadata("design:type", String)
+], Lead.prototype, "status", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ nullable: true, type: 'int' }),
+    __metadata("design:type", Object)
+], Lead.prototype, "assigned_to", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: 'int', default: 1 }),
+    __metadata("design:type", Number)
+], Lead.prototype, "visible_to_level", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: 'float', nullable: true }),
+    __metadata("design:type", Number)
+], Lead.prototype, "profit", void 0);
 exports.Lead = Lead = __decorate([
     (0, typeorm_1.Entity)()
 ], Lead);

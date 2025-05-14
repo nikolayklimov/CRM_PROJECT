@@ -35,7 +35,7 @@ let AuthService = class AuthService {
         const user = this.userRepository.create({
             password: hashedPassword,
             email: dto.email,
-            name: dto.name,
+            name: dto.full_name,
             role: dto.role,
         });
         return this.userRepository.save(user);

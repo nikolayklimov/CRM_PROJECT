@@ -1,7 +1,11 @@
+import { Stage } from '../stage/stage.entity';
+import { ManagerBonus } from '../bonus/manager-bonus.entity';
 export declare class User {
     id: number;
     email: string;
     name: string;
     password: string;
-    role: 'admin' | 'manager' | 'owner';
+    role: 'admin' | 'manager' | 'senior' | 'owner' | 'supervisor';
+    stages: Stage[];
+    bonuses: ManagerBonus[];
 }

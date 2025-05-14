@@ -13,6 +13,10 @@ const typeorm_config_1 = require("./config/typeorm.config");
 const user_module_1 = require("./user/user.module");
 const lead_module_1 = require("./lead/lead.module");
 const auth_module_1 = require("./auth/auth.module");
+const stage_module_1 = require("./stage/stage.module");
+const call_controller_1 = require("./call/call.controller");
+const audit_log_module_1 = require("./audit-log/audit-log.module");
+const bonus_module_1 = require("./bonus/bonus.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -23,7 +27,11 @@ exports.AppModule = AppModule = __decorate([
             user_module_1.UserModule,
             lead_module_1.LeadModule,
             auth_module_1.AuthModule,
+            stage_module_1.StageModule,
+            audit_log_module_1.AuditLogModule,
+            bonus_module_1.BonusModule,
         ],
+        controllers: [call_controller_1.CallController],
     })
 ], AppModule);
 //# sourceMappingURL=app.module.js.map

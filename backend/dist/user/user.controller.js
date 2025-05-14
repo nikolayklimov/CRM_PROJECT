@@ -19,23 +19,32 @@ const create_user_dto_1 = require("./create-user.dto");
 const jwt_auth_guard_1 = require("../auth/jwt-auth.guard");
 const roles_guard_1 = require("../auth/roles.guard");
 const roles_decorator_1 = require("../auth/roles.decorator");
+const audit_log_service_1 = require("../audit-log/audit-log.service");
 let UserController = class UserController {
-    constructor(userService) {
+    constructor(userService, auditService) {
         this.userService = userService;
+        this.auditService = auditService;
     }
     async getAllUsers(req) {
-        console.log('Пользователь из токена:', req.user);
-        return this.userService.findAll();
+        var _a;
+        const users = await this.userService.findAll();
+        await this.auditService.logAction((_a = req.user) === null || _a === void 0 ? void 0 : _a.id, 'GET', '/user', {}, 'get_users', undefined, 'Просмотр всех пользователей');
+        return users;
     }
-    async create(dto) {
-        return this.userService.createUser(dto);
+    async create(req, dto) {
+        var _a;
+        const user = await this.userService.createUser(dto);
+        await this.auditService.logAction((_a = req.user) === null || _a === void 0 ? void 0 : _a.id, 'POST', '/user', dto, 'create_user', undefined, `Создан пользователь ${dto.email}`);
+        return user;
+    }
+    async getUserBonuses(id) {
+        return this.userService.getBonusesByUserId(Number(id));
     }
 };
 exports.UserController = UserController;
 __decorate([
     (0, common_1.Get)(),
     (0, roles_decorator_1.Roles)('admin'),
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
     __param(0, (0, common_1.Request)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
@@ -44,14 +53,24 @@ __decorate([
 __decorate([
     (0, common_1.Post)(),
     (0, roles_decorator_1.Roles)('admin'),
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
-    __param(0, (0, common_1.Body)()),
+    __param(0, (0, common_1.Request)()),
+    __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [create_user_dto_1.CreateUserDto]),
+    __metadata("design:paramtypes", [Object, create_user_dto_1.CreateUserDto]),
     __metadata("design:returntype", Promise)
 ], UserController.prototype, "create", null);
+__decorate([
+    (0, common_1.Get)(':id/bonuses'),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    __param(0, (0, common_1.Param)('id')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number]),
+    __metadata("design:returntype", Promise)
+], UserController.prototype, "getUserBonuses", null);
 exports.UserController = UserController = __decorate([
     (0, common_1.Controller)('user'),
-    __metadata("design:paramtypes", [user_service_1.UserService])
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
+    __metadata("design:paramtypes", [user_service_1.UserService,
+        audit_log_service_1.AuditLogService])
 ], UserController);
 //# sourceMappingURL=user.controller.js.map

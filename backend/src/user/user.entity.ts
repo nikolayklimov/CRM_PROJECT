@@ -1,4 +1,6 @@
-import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
+import { Stage } from '../stage/stage.entity';
+import { ManagerBonus } from '../bonus/manager-bonus.entity';
 
 @Entity()
 export class User {
@@ -14,6 +16,16 @@ export class User {
   @Column()
   password: string;
 
-  @Column({ type: 'enum', enum: ['admin', 'manager', 'owner'], default: 'manager' })
-  role: 'admin' | 'manager' | 'owner';
+  @Column({
+    type: 'enum',
+    enum: ['admin', 'manager', 'senior', 'owner', 'supervisor'],
+    default: 'manager',
+  })
+  role: 'admin' | 'manager' | 'senior' | 'owner' | 'supervisor';
+
+  @OneToMany(() => Stage, (stage) => stage.manager)
+  stages: Stage[];
+
+  @OneToMany(() => ManagerBonus, (bonus) => bonus.manager)
+  bonuses: ManagerBonus[];
 }

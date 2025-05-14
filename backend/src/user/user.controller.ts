@@ -1,27 +1,64 @@
-import { Controller, Get, Post, Body, UseGuards, Request } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  UseGuards,
+  Request as Req,
+  Param,
+} from '@nestjs/common';
 import { UserService } from './user.service';
 import { User } from './user.entity';
 import { CreateUserDto } from './create-user.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/roles.decorator';
+import { AuditLogService } from '../audit-log/audit-log.service';
+import { Request } from 'express';
 
 @Controller('user')
+@UseGuards(JwtAuthGuard, RolesGuard)
 export class UserController {
-  constructor(private readonly userService: UserService) {}
+  constructor(
+    private readonly userService: UserService,
+    private readonly auditService: AuditLogService,
+  ) {}
 
   @Get()
-  @Roles('admin') // Только для админов
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  async getAllUsers(@Request() req): Promise<User[]> {
-    console.log('Пользователь из токена:', req.user); // 🔍 Проверка
-    return this.userService.findAll();
+  @Roles('admin')
+  async getAllUsers(@Req() req: Request): Promise<User[]> {
+    const users = await this.userService.findAll();
+    await this.auditService.logAction(
+      (req.user as any)?.id,
+      'GET',
+      '/user',
+      {},
+      'get_users',
+      undefined,
+      'Просмотр всех пользователей',
+    );
+    return users;
   }
 
   @Post()
-  @Roles('admin') // Только для админов
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  async create(@Body() dto: CreateUserDto): Promise<User> {
-    return this.userService.createUser(dto);
+  @Roles('admin')
+  async create(@Req() req: Request, @Body() dto: CreateUserDto): Promise<User> {
+    const user = await this.userService.createUser(dto);
+    await this.auditService.logAction(
+      (req.user as any)?.id,
+      'POST',
+      '/user',
+      dto,
+      'create_user',
+      undefined,
+      `Создан пользователь ${dto.email}`,
+    );
+    return user;
+  }
+
+  @Get(':id/bonuses')
+  @UseGuards(JwtAuthGuard)
+  async getUserBonuses(@Param('id') id: number) {
+    return this.userService.getBonusesByUserId(Number(id));
   }
 }

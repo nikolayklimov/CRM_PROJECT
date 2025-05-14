@@ -3,7 +3,9 @@ import {
   PrimaryGeneratedColumn,
   Column,
   CreateDateColumn,
+  OneToMany,
 } from 'typeorm';
+import { Stage } from '../stage/stage.entity';
 
 @Entity()
 export class Lead {
@@ -54,4 +56,23 @@ export class Lead {
 
   @Column({ nullable: true, type: 'text' })
   notes: string;
+
+  @OneToMany(() => Stage, (stage) => stage.lead, { cascade: true })
+  stages: Stage[];
+
+  @Column({
+    type: 'enum',
+    enum: ['new', 'in_work', 'callback', 'cut', 'to_level2', 'to_level3', 'closed'],
+    default: 'new',
+  })
+  status: 'new' | 'in_work' | 'callback' | 'cut' | 'to_level2' | 'to_level3' | 'closed';
+
+  @Column({ nullable: true, type: 'int' })
+  assigned_to: number | null; // ID менеджера, если назначен
+
+  @Column({ type: 'int', default: 1 })
+  visible_to_level: number; // 1, 2, 3
+
+  @Column({ type: 'float', nullable: true })
+  profit: number;
 }

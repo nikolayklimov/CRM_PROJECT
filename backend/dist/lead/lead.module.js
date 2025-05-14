@@ -12,12 +12,19 @@ const typeorm_1 = require("@nestjs/typeorm");
 const lead_entity_1 = require("./lead.entity");
 const lead_service_1 = require("./lead.service");
 const lead_controller_1 = require("./lead.controller");
+const audit_log_module_1 = require("../audit-log/audit-log.module");
+const bonus_module_1 = require("../bonus/bonus.module");
+const bonus_entity_1 = require("../bonus/bonus.entity");
 let LeadModule = class LeadModule {
 };
 exports.LeadModule = LeadModule;
 exports.LeadModule = LeadModule = __decorate([
     (0, common_1.Module)({
-        imports: [typeorm_1.TypeOrmModule.forFeature([lead_entity_1.Lead])],
+        imports: [
+            typeorm_1.TypeOrmModule.forFeature([lead_entity_1.Lead, bonus_entity_1.Bonus]),
+            audit_log_module_1.AuditLogModule,
+            bonus_module_1.BonusModule,
+        ],
         controllers: [lead_controller_1.LeadController],
         providers: [lead_service_1.LeadService],
         exports: [lead_service_1.LeadService],

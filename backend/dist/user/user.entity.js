@@ -11,6 +11,8 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.User = void 0;
 const typeorm_1 = require("typeorm");
+const stage_entity_1 = require("../stage/stage.entity");
+const manager_bonus_entity_1 = require("../bonus/manager-bonus.entity");
 let User = class User {
 };
 exports.User = User;
@@ -31,9 +33,21 @@ __decorate([
     __metadata("design:type", String)
 ], User.prototype, "password", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ type: 'enum', enum: ['admin', 'manager', 'owner'], default: 'manager' }),
+    (0, typeorm_1.Column)({
+        type: 'enum',
+        enum: ['admin', 'manager', 'senior', 'owner', 'supervisor'],
+        default: 'manager',
+    }),
     __metadata("design:type", String)
 ], User.prototype, "role", void 0);
+__decorate([
+    (0, typeorm_1.OneToMany)(() => stage_entity_1.Stage, (stage) => stage.manager),
+    __metadata("design:type", Array)
+], User.prototype, "stages", void 0);
+__decorate([
+    (0, typeorm_1.OneToMany)(() => manager_bonus_entity_1.ManagerBonus, (bonus) => bonus.manager),
+    __metadata("design:type", Array)
+], User.prototype, "bonuses", void 0);
 exports.User = User = __decorate([
     (0, typeorm_1.Entity)()
 ], User);

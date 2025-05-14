@@ -5,6 +5,7 @@ const app_module_1 = require("./app.module");
 const core_2 = require("@nestjs/core");
 async function bootstrap() {
     try {
+        console.log('Connected to DB:', process.env.DATABASE_NAME);
         const app = await core_1.NestFactory.create(app_module_1.AppModule);
         const reflector = app.get(core_2.Reflector);
         await app.listen(3000);
