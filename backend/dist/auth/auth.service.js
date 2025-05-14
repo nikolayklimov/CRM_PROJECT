@@ -25,6 +25,7 @@ let AuthService = class AuthService {
         this.jwtService = jwtService;
     }
     async register(dto) {
+        console.log('👤 Регистрирую пользователя:', dto.email);
         const existing = await this.userRepository.findOne({
             where: { email: dto.email },
         });
@@ -35,7 +36,7 @@ let AuthService = class AuthService {
         const user = this.userRepository.create({
             password: hashedPassword,
             email: dto.email,
-            name: dto.full_name,
+            name: dto.name,
             role: dto.role,
         });
         return this.userRepository.save(user);

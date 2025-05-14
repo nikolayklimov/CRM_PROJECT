@@ -16,6 +16,10 @@ export class AuthService {
     ) {}
 
     async register(dto: RegisterDto): Promise<User> {
+        
+        console.log('👤 Регистрирую пользователя:', dto.email);
+
+
         const existing = await this.userRepository.findOne({
             where: { email: dto.email },
         });

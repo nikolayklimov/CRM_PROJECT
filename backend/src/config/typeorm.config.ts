@@ -12,4 +12,5 @@ export const typeOrmConfig: TypeOrmModuleOptions = {
   database: process.env.DATABASE_NAME,
   autoLoadEntities: true,
   synchronize: true, // only in development!
+  logging: true,
 };

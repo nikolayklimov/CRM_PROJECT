@@ -12,5 +12,6 @@ exports.typeOrmConfig = {
     database: process.env.DATABASE_NAME,
     autoLoadEntities: true,
     synchronize: true,
+    logging: true,
 };
 //# sourceMappingURL=typeorm.config.js.map
