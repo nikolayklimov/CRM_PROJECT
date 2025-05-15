@@ -25,46 +25,42 @@ let AuthService = class AuthService {
         this.jwtService = jwtService;
     }
     async register(dto) {
-        console.log('👤 Регистрирую пользователя:', dto.email);
+        var _a;
+        console.log('👤 Регистрирую пользователя:', dto.name);
         const existing = await this.userRepository.findOne({
-            where: { email: dto.email },
+            where: { name: dto.name },
         });
         if (existing) {
-            throw new common_1.ConflictException('Пользователь с таким email уже существует');
+            throw new common_1.ConflictException('Пользователь с таким именем уже существует');
         }
         const hashedPassword = await bcrypt.hash(dto.password, 10);
         const user = this.userRepository.create({
-            password: hashedPassword,
-            email: dto.email,
             name: dto.name,
+            password: hashedPassword,
             role: dto.role,
+            managerLevel: dto.role === 'manager' ? (_a = dto.managerLevel) !== null && _a !== void 0 ? _a : 1 : undefined,
         });
         return this.userRepository.save(user);
     }
     async login(dto) {
-        try {
-            const user = await this.userRepository.findOne({
-                where: { email: dto.email },
-            });
-            if (!user) {
-                throw new common_1.UnauthorizedException('Неверный email или пароль');
-            }
-            const isValid = await bcrypt.compare(dto.password, user.password);
-            if (!isValid) {
-                throw new common_1.UnauthorizedException('Неверный email или пароль');
-            }
-            const payload = {
-                sub: user.id,
-                email: user.email,
-                role: user.role,
-            };
-            const token = await this.jwtService.signAsync(payload);
-            return { access_token: token };
+        console.log('Login attempt:', dto.name);
+        const user = await this.userRepository.findOne({
+            where: { name: dto.name },
+        });
+        if (!user) {
+            throw new common_1.UnauthorizedException('Неверное имя или пароль');
         }
-        catch (err) {
-            console.error('Error occurred during login:', err);
-            throw new common_1.UnauthorizedException('Неверный email или пароль');
+        const isValid = await bcrypt.compare(dto.password, user.password);
+        if (!isValid) {
+            throw new common_1.UnauthorizedException('Неверное имя или пароль');
         }
+        const payload = {
+            sub: user.id,
+            name: user.name,
+            role: user.role,
+        };
+        const token = await this.jwtService.signAsync(payload);
+        return { access_token: token };
     }
 };
 exports.AuthService = AuthService;

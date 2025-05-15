@@ -18,11 +18,15 @@ const typeorm_1 = require("@nestjs/typeorm");
 const typeorm_2 = require("typeorm");
 const lead_entity_1 = require("./lead.entity");
 const stage_entity_1 = require("../stage/stage.entity");
-const bonus_entity_1 = require("../bonus/bonus.entity");
+const manager_bonus_entity_1 = require("../bonus/manager-bonus.entity");
+const owner_bonus_entity_1 = require("../bonus/owner-bonus.entity");
+const user_entity_1 = require("../user/user.entity");
 let LeadService = class LeadService {
-    constructor(leadRepository, bonusRepository) {
+    constructor(leadRepository, bonusRepository, ownerBonusRepository, userRepository) {
         this.leadRepository = leadRepository;
         this.bonusRepository = bonusRepository;
+        this.ownerBonusRepository = ownerBonusRepository;
+        this.userRepository = userRepository;
     }
     findAll() {
         return this.leadRepository.find();
@@ -31,11 +35,14 @@ let LeadService = class LeadService {
         const lead = this.leadRepository.create(Object.assign(Object.assign({}, dto), { status: 'new' }));
         return this.leadRepository.save(lead);
     }
-    async updateStatus(id, status) {
+    async updateStatus(id, status, visibleToLevel) {
         const lead = await this.leadRepository.findOneBy({ id });
         if (!lead)
             throw new Error(`Lead with id ${id} not found`);
         lead.status = status;
+        if (visibleToLevel !== undefined) {
+            lead.visible_to_level = visibleToLevel;
+        }
         return this.leadRepository.save(lead);
     }
     async updateProfit(id, profit) {
@@ -47,11 +54,11 @@ let LeadService = class LeadService {
     }
     async getLeadBonuses(leadId) {
         var _a;
-        const lead = await this.leadRepository.findOne({
+        const lead = await this.leadRepository.find({
             where: { id: leadId },
             relations: ['stages', 'stages.manager'],
-        });
-        if (!lead || !('profit' in lead) || !lead.profit) {
+        }).then((res) => res[0]);
+        if (!lead || !lead.profit) {
             throw new Error('Лид не найден или сумма не указана');
         }
         const result = {
@@ -60,7 +67,6 @@ let LeadService = class LeadService {
             totalManagerBonus: 0,
             ownerModel: '',
             ownerShares: [],
-            seniorBonus: { role: 'senior', amount: 0, name: '' },
         };
         const stagePercents = {
             stage_1: 6,
@@ -75,6 +81,7 @@ let LeadService = class LeadService {
                     continue;
                 if (!bonusByManager[managerId]) {
                     bonusByManager[managerId] = {
+                        managerId: managerId.toString(),
                         name: `Менеджер #${managerId}`,
                         percent: 0,
                         sum: 0,
@@ -87,18 +94,16 @@ let LeadService = class LeadService {
                 result.totalManagerBonus += sum;
             }
         }
-        result.managers = Object.entries(bonusByManager).map(([id, val]) => (Object.assign({ managerId: id }, val)));
+        result.managers = Object.values(bonusByManager);
+        const owners = await this.userRepository.find({ where: { role: 'owner' } });
         const remaining = lead.profit - result.totalManagerBonus;
-        const owners = ['owner1', 'owner2', 'owner3'];
         const share = Math.floor((remaining / owners.length) * 100) / 100;
         result.ownerModel = owners.length === 3 ? '1/3' : owners.length === 2 ? '1/2' : '100%';
-        result.ownerShares = owners.map((o) => ({ owner: o, amount: share }));
-        const seniorBonus = Math.floor(lead.profit * 0.1 * 100) / 100;
-        result.seniorBonus = {
-            role: 'senior',
-            amount: seniorBonus,
-            name: 'Старший менеджер',
-        };
+        result.ownerShares = owners.map((owner) => ({
+            ownerId: owner.id,
+            ownerName: owner.name || `Owner #${owner.id}`,
+            amount: share,
+        }));
         return result;
     }
     async assignManager(id, managerId) {
@@ -106,6 +111,9 @@ let LeadService = class LeadService {
         if (!lead)
             throw new Error(`Lead with id ${id} not found`);
         lead.assigned_to = managerId;
+        if (lead.status === 'new') {
+            lead.status = 'in_work';
+        }
         return this.leadRepository.save(lead);
     }
     async handleAfterCall(id, status, notes, profit, user) {
@@ -129,19 +137,22 @@ let LeadService = class LeadService {
         if (status === 'closed' && profit != null) {
             lead.profit = profit;
             lead.visible_to_level = 0;
-            const leadWithStages = await this.leadRepository.findOne({
+            const leadWithStages = await this.leadRepository.find({
                 where: { id },
                 relations: ['stages', 'stages.manager'],
-            });
+            }).then((res) => res[0]);
             const stagePercents = {
                 stage_1: 6,
                 stage_2: 3,
                 stage_3: 6,
             };
+            let totalManagerBonus = 0;
             for (const stage of (leadWithStages === null || leadWithStages === void 0 ? void 0 : leadWithStages.stages) || []) {
-                if (stage.status === stage_entity_1.StageStatus.COMPLETED && stage.manager && stagePercents[stage.type]) {
+                if (stage.status === stage_entity_1.StageStatus.COMPLETED &&
+                    stage.manager &&
+                    stagePercents[stage.type]) {
                     const percent = stagePercents[stage.type];
-                    const bonusAmount = Math.floor((profit * percent) * 100) / 100;
+                    const bonusAmount = Math.floor(profit * percent * 100) / 100;
                     const bonus = this.bonusRepository.create({
                         manager: stage.manager,
                         lead: lead,
@@ -149,7 +160,19 @@ let LeadService = class LeadService {
                         amount: bonusAmount,
                     });
                     await this.bonusRepository.save(bonus);
+                    totalManagerBonus += bonusAmount;
                 }
+            }
+            const owners = await this.userRepository.find({ where: { role: 'owner' } });
+            const remaining = profit - totalManagerBonus;
+            const share = Math.floor((remaining / owners.length) * 100) / 100;
+            for (const owner of owners) {
+                const ownerBonus = this.ownerBonusRepository.create({
+                    owner,
+                    lead,
+                    amount: share,
+                });
+                await this.ownerBonusRepository.save(ownerBonus);
             }
         }
         return this.leadRepository.save(lead);
@@ -159,8 +182,12 @@ exports.LeadService = LeadService;
 exports.LeadService = LeadService = __decorate([
     (0, common_1.Injectable)(),
     __param(0, (0, typeorm_1.InjectRepository)(lead_entity_1.Lead)),
-    __param(1, (0, typeorm_1.InjectRepository)(bonus_entity_1.Bonus)),
+    __param(1, (0, typeorm_1.InjectRepository)(manager_bonus_entity_1.ManagerBonus)),
+    __param(2, (0, typeorm_1.InjectRepository)(owner_bonus_entity_1.OwnerBonus)),
+    __param(3, (0, typeorm_1.InjectRepository)(user_entity_1.User)),
     __metadata("design:paramtypes", [typeorm_2.Repository,
+        typeorm_2.Repository,
+        typeorm_2.Repository,
         typeorm_2.Repository])
 ], LeadService);
 //# sourceMappingURL=lead.service.js.map

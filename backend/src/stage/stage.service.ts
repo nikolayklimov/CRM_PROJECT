@@ -3,13 +3,25 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Stage, StageType, StageStatus } from './stage.entity';
 import { CreateStageDto } from './dto/create-stage.dto';
+import { Lead } from '../lead/lead.entity';
+import { User } from '../user/user.entity';
+import { DataSource } from 'typeorm';
 
 @Injectable()
 export class StageService {
-  constructor(
-    @InjectRepository(Stage)
-    private readonly stageRepository: Repository<Stage>,
-  ) {}
+	constructor(
+		@InjectRepository(Stage)
+		private readonly stageRepository: Repository<Stage>,
+		private readonly dataSource: DataSource,
+	) {}
+
+	async getManager(managerId: number): Promise<User | null> {
+		return this.dataSource.getRepository(User).findOneBy({ id: managerId });
+	}
+
+	async updateLeadStatus(leadId: number, status: Lead['status']): Promise<void> {
+		await this.dataSource.getRepository(Lead).update({ id: leadId }, { status });
+}
 
   async create(dto: CreateStageDto): Promise<Stage> {
     const stage = this.stageRepository.create({

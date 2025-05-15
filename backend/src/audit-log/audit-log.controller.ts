@@ -2,13 +2,10 @@ import {
   Controller,
   Get,
   Query,
-  UseGuards,
   Header,
 } from '@nestjs/common';
 import { AuditLogService } from './audit-log.service';
-import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
-@UseGuards(JwtAuthGuard) // защищаем доступ к логам
 @Controller('audit')
 export class AuditLogController {
   constructor(private readonly auditService: AuditLogService) {}

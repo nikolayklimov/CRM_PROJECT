@@ -14,12 +14,11 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { LeadService } from './lead.service';
 import { Lead } from './lead.entity';
 import { CreateLeadDto } from './create-lead.dto';
-import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { parse } from 'csv-parse/sync';
 import { AuditLogService } from '../audit-log/audit-log.service';
 import { Request } from 'express';
+import { ManagerBonusInfo, LeadBonusResult } from './types/lead-bonus-result.interface';
 
-@UseGuards(JwtAuthGuard)
 @Controller('lead')
 export class LeadController {
   constructor(
@@ -81,17 +80,18 @@ export class LeadController {
     @Req() req: Request & { user?: any },
     @Param('id') id: number,
     @Body('status') status: string,
+    @Body('visibleToLevel') visibleToLevel?: number, // ⬅️ добавили
   ): Promise<Lead> {
-    const lead = await this.leadService.updateStatus(id, status);
+    const lead = await this.leadService.updateStatus(id, status, visibleToLevel); // ⬅️ передаём
 
     await this.auditService.logAction(
       (req.user as any)?.id,
       'PATCH',
       `/lead/${id}/status`,
-      { status },
+      { status, visibleToLevel },
       'update_status',
       lead.id,
-      `Обновлён статус лида: ${lead.full_name} (ID ${lead.id}) → ${status}`,
+      `Обновлён статус лида: ${lead.full_name} (ID ${lead.id}) → ${status}, уровень видимости → ${visibleToLevel}`,
     );
 
     return lead;
@@ -193,7 +193,7 @@ export class LeadController {
   }
 
   @Get(':id/bonus')
-  async getBonus(@Param('id') id: number) {
+  async getBonus(@Param('id') id: number): Promise<LeadBonusResult> {
     return this.leadService.getLeadBonuses(id);
   }
 }

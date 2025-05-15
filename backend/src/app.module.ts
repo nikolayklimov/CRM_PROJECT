@@ -7,6 +7,7 @@ import { LeadModule } from './lead/lead.module';
 import { AuthModule } from './auth/auth.module';
 import { StageModule } from './stage/stage.module';
 import { CallController } from './call/call.controller';
+import { CallModule } from './call/call.module';
 import { AuditLogModule } from './audit-log/audit-log.module';
 import { BonusModule } from './bonus/bonus.module';
 
@@ -19,6 +20,7 @@ import { BonusModule } from './bonus/bonus.module';
     StageModule, 
     AuditLogModule,
     BonusModule,
+    CallModule,
     // сюда будут добавляться StageModule, BonusModule и др.
   ],
   controllers: [CallController],

@@ -17,9 +17,19 @@ const common_1 = require("@nestjs/common");
 const typeorm_1 = require("@nestjs/typeorm");
 const typeorm_2 = require("typeorm");
 const stage_entity_1 = require("./stage.entity");
+const lead_entity_1 = require("../lead/lead.entity");
+const user_entity_1 = require("../user/user.entity");
+const typeorm_3 = require("typeorm");
 let StageService = class StageService {
-    constructor(stageRepository) {
+    constructor(stageRepository, dataSource) {
         this.stageRepository = stageRepository;
+        this.dataSource = dataSource;
+    }
+    async getManager(managerId) {
+        return this.dataSource.getRepository(user_entity_1.User).findOneBy({ id: managerId });
+    }
+    async updateLeadStatus(leadId, status) {
+        await this.dataSource.getRepository(lead_entity_1.Lead).update({ id: leadId }, { status });
     }
     async create(dto) {
         const stage = this.stageRepository.create(Object.assign(Object.assign({}, dto), { lead: { id: dto.lead }, manager: { id: dto.manager } }));
@@ -50,6 +60,7 @@ exports.StageService = StageService;
 exports.StageService = StageService = __decorate([
     (0, common_1.Injectable)(),
     __param(0, (0, typeorm_1.InjectRepository)(stage_entity_1.Stage)),
-    __metadata("design:paramtypes", [typeorm_2.Repository])
+    __metadata("design:paramtypes", [typeorm_2.Repository,
+        typeorm_3.DataSource])
 ], StageService);
 //# sourceMappingURL=stage.service.js.map

@@ -15,7 +15,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.BonusController = void 0;
 const common_1 = require("@nestjs/common");
 const bonus_service_1 = require("./bonus.service");
-const jwt_auth_guard_1 = require("../auth/jwt-auth.guard");
 let BonusController = class BonusController {
     constructor(bonusService) {
         this.bonusService = bonusService;
@@ -48,7 +47,6 @@ __decorate([
 ], BonusController.prototype, "getMyTodayBonus", null);
 __decorate([
     (0, common_1.Get)('by-lead/:id'),
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Req)()),
     __metadata("design:type", Function),
@@ -56,7 +54,6 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], BonusController.prototype, "getBonusesByLead", null);
 exports.BonusController = BonusController = __decorate([
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
     (0, common_1.Controller)('bonus'),
     __metadata("design:paramtypes", [bonus_service_1.BonusService])
 ], BonusController);

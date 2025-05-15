@@ -15,7 +15,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.AuditLogController = void 0;
 const common_1 = require("@nestjs/common");
 const audit_log_service_1 = require("./audit-log.service");
-const jwt_auth_guard_1 = require("../auth/jwt-auth.guard");
 let AuditLogController = class AuditLogController {
     constructor(auditService) {
         this.auditService = auditService;
@@ -49,7 +48,6 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], AuditLogController.prototype, "exportLogs", null);
 exports.AuditLogController = AuditLogController = __decorate([
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
     (0, common_1.Controller)('audit'),
     __metadata("design:paramtypes", [audit_log_service_1.AuditLogService])
 ], AuditLogController);

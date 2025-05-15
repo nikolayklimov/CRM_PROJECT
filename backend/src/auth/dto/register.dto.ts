@@ -1,9 +1,6 @@
-import { IsString, IsEmail, IsNotEmpty } from 'class-validator';
+import { IsString, IsNotEmpty, IsEnum, IsOptional, IsInt } from 'class-validator';
 
 export class RegisterDto {
-  @IsEmail()
-  email: string;
-
   @IsString()
   @IsNotEmpty()
   name: string;
@@ -14,5 +11,9 @@ export class RegisterDto {
 
   @IsString()
   @IsNotEmpty()
-  role: 'admin' | 'manager' | 'owner';  // Убедитесь, что тип здесь правильный
+  role: 'admin' | 'manager' | 'owner';
+
+  @IsOptional()
+  @IsInt()
+  managerLevel?: number;
 }

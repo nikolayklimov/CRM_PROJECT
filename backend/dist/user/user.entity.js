@@ -13,6 +13,7 @@ exports.User = void 0;
 const typeorm_1 = require("typeorm");
 const stage_entity_1 = require("../stage/stage.entity");
 const manager_bonus_entity_1 = require("../bonus/manager-bonus.entity");
+const owner_bonus_entity_1 = require("../bonus/owner-bonus.entity");
 let User = class User {
 };
 exports.User = User;
@@ -21,7 +22,7 @@ __decorate([
     __metadata("design:type", Number)
 ], User.prototype, "id", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ unique: true }),
+    (0, typeorm_1.Column)({ nullable: true }),
     __metadata("design:type", String)
 ], User.prototype, "email", void 0);
 __decorate([
@@ -48,6 +49,14 @@ __decorate([
     (0, typeorm_1.OneToMany)(() => manager_bonus_entity_1.ManagerBonus, (bonus) => bonus.manager),
     __metadata("design:type", Array)
 ], User.prototype, "bonuses", void 0);
+__decorate([
+    (0, typeorm_1.OneToMany)(() => owner_bonus_entity_1.OwnerBonus, (bonus) => bonus.owner),
+    __metadata("design:type", Array)
+], User.prototype, "ownerBonuses", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ nullable: true }),
+    __metadata("design:type", Number)
+], User.prototype, "managerLevel", void 0);
 exports.User = User = __decorate([
     (0, typeorm_1.Entity)()
 ], User);

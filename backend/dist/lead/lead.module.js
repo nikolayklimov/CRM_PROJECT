@@ -14,14 +14,16 @@ const lead_service_1 = require("./lead.service");
 const lead_controller_1 = require("./lead.controller");
 const audit_log_module_1 = require("../audit-log/audit-log.module");
 const bonus_module_1 = require("../bonus/bonus.module");
-const bonus_entity_1 = require("../bonus/bonus.entity");
+const user_entity_1 = require("../user/user.entity");
+const owner_bonus_entity_1 = require("../bonus/owner-bonus.entity");
+const manager_bonus_entity_1 = require("../bonus/manager-bonus.entity");
 let LeadModule = class LeadModule {
 };
 exports.LeadModule = LeadModule;
 exports.LeadModule = LeadModule = __decorate([
     (0, common_1.Module)({
         imports: [
-            typeorm_1.TypeOrmModule.forFeature([lead_entity_1.Lead, bonus_entity_1.Bonus]),
+            typeorm_1.TypeOrmModule.forFeature([lead_entity_1.Lead, manager_bonus_entity_1.ManagerBonus, owner_bonus_entity_1.OwnerBonus, user_entity_1.User,]),
             audit_log_module_1.AuditLogModule,
             bonus_module_1.BonusModule,
         ],

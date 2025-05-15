@@ -16,8 +16,6 @@ exports.UserController = void 0;
 const common_1 = require("@nestjs/common");
 const user_service_1 = require("./user.service");
 const create_user_dto_1 = require("./create-user.dto");
-const jwt_auth_guard_1 = require("../auth/jwt-auth.guard");
-const roles_guard_1 = require("../auth/roles.guard");
 const roles_decorator_1 = require("../auth/roles.decorator");
 const audit_log_service_1 = require("../audit-log/audit-log.service");
 let UserController = class UserController {
@@ -61,7 +59,6 @@ __decorate([
 ], UserController.prototype, "create", null);
 __decorate([
     (0, common_1.Get)(':id/bonuses'),
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
     __param(0, (0, common_1.Param)('id')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Number]),
@@ -69,7 +66,6 @@ __decorate([
 ], UserController.prototype, "getUserBonuses", null);
 exports.UserController = UserController = __decorate([
     (0, common_1.Controller)('user'),
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
     __metadata("design:paramtypes", [user_service_1.UserService,
         audit_log_service_1.AuditLogService])
 ], UserController);

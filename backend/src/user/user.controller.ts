@@ -10,14 +10,11 @@ import {
 import { UserService } from './user.service';
 import { User } from './user.entity';
 import { CreateUserDto } from './create-user.dto';
-import { JwtAuthGuard } from '../auth/jwt-auth.guard';
-import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/roles.decorator';
 import { AuditLogService } from '../audit-log/audit-log.service';
 import { Request } from 'express';
 
 @Controller('user')
-@UseGuards(JwtAuthGuard, RolesGuard)
 export class UserController {
   constructor(
     private readonly userService: UserService,
@@ -57,7 +54,6 @@ export class UserController {
   }
 
   @Get(':id/bonuses')
-  @UseGuards(JwtAuthGuard)
   async getUserBonuses(@Param('id') id: number) {
     return this.userService.getBonusesByUserId(Number(id));
   }

@@ -17,11 +17,22 @@ const common_1 = require("@nestjs/common");
 const auth_service_1 = require("./auth.service");
 const register_dto_1 = require("./dto/register.dto");
 const login_dto_1 = require("./dto/login.dto");
+const public_decorator_1 = require("./public.decorator");
 let AuthController = class AuthController {
     constructor(authService) {
         this.authService = authService;
     }
-    async register(dto) {
+    async register(dto, req) {
+        const user = req.user;
+        if (dto.role === 'admin' && user.role !== 'owner') {
+            throw new common_1.ForbiddenException('Только владелец может создать админа');
+        }
+        if (dto.role === 'manager' && !['admin', 'owner'].includes(user.role)) {
+            throw new common_1.ForbiddenException('Только владелец или админ может создать менеджера');
+        }
+        if (!['admin', 'manager'].includes(dto.role)) {
+            throw new common_1.ForbiddenException('Эту роль создать нельзя');
+        }
         return this.authService.register(dto);
     }
     async login(dto) {
@@ -33,11 +44,13 @@ exports.AuthController = AuthController;
 __decorate([
     (0, common_1.Post)('register'),
     __param(0, (0, common_1.Body)()),
+    __param(1, (0, common_1.Req)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [register_dto_1.RegisterDto]),
+    __metadata("design:paramtypes", [register_dto_1.RegisterDto, Object]),
     __metadata("design:returntype", Promise)
 ], AuthController.prototype, "register", null);
 __decorate([
+    (0, public_decorator_1.Public)(),
     (0, common_1.Post)('login'),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),

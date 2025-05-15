@@ -8,7 +8,7 @@ import {
 import { User } from '../user/user.entity';
 import { Lead } from '../lead/lead.entity';
 
-@Entity()
+@Entity('manager_bonus')
 export class ManagerBonus {
   @PrimaryGeneratedColumn()
   id: number;

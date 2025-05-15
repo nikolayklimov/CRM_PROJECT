@@ -15,6 +15,8 @@ const user_entity_1 = require("../user/user.entity");
 const user_module_1 = require("../user/user.module");
 const jwt_1 = require("@nestjs/jwt");
 const jwt_strategy_1 = require("./jwt.strategy");
+const dotenv = require("dotenv");
+dotenv.config();
 let AuthModule = class AuthModule {
 };
 exports.AuthModule = AuthModule;
@@ -24,12 +26,13 @@ exports.AuthModule = AuthModule = __decorate([
             typeorm_1.TypeOrmModule.forFeature([user_entity_1.User]),
             user_module_1.UserModule,
             jwt_1.JwtModule.register({
-                secret: 'SECRET_KEY',
+                secret: process.env.JWT_SECRET || 'default_secret',
                 signOptions: { expiresIn: '1d' },
             }),
         ],
         providers: [auth_service_1.AuthService, jwt_strategy_1.JwtStrategy],
         controllers: [auth_controller_1.AuthController],
+        exports: [auth_service_1.AuthService],
     })
 ], AuthModule);
 //# sourceMappingURL=auth.module.js.map

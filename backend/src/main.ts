@@ -1,19 +1,26 @@
-import { NestFactory } from '@nestjs/core';  // Добавьте этот импорт для NestFactory
-import { AppModule } from './app.module';    // Добавьте этот импорт для AppModule
+import { NestFactory } from '@nestjs/core';
+import { AppModule } from './app.module';
 import { RolesGuard } from './auth/roles.guard';
 import { JwtAuthGuard } from './auth/jwt-auth.guard';
 import { Reflector } from '@nestjs/core';
+import { ValidationPipe } from '@nestjs/common';
+
+import * as dotenv from 'dotenv';
+dotenv.config();
 
 async function bootstrap() {
   try {
-    console.log('Connected to DB:', process.env.DATABASE_NAME);
-    const app = await NestFactory.create(AppModule);  // Здесь создаём приложение, используя AppModule
+    const app = await NestFactory.create(AppModule);
+
     const reflector = app.get(Reflector);
-    // app.useGlobalGuards(
-    //   new JwtAuthGuard(),
-    //   new RolesGuard(reflector),
-    // );
-    await app.listen(3000); // Прослушивание порта
+    app.useGlobalGuards(
+      new JwtAuthGuard(reflector),
+      new RolesGuard(reflector),
+    );
+
+    app.useGlobalPipes(new ValidationPipe());
+
+    await app.listen(3000);
     console.log('App is running on http://localhost:3000');
   } catch (error) {
     console.error('Error starting the app:', error);

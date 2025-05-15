@@ -15,6 +15,7 @@ const lead_module_1 = require("./lead/lead.module");
 const auth_module_1 = require("./auth/auth.module");
 const stage_module_1 = require("./stage/stage.module");
 const call_controller_1 = require("./call/call.controller");
+const call_module_1 = require("./call/call.module");
 const audit_log_module_1 = require("./audit-log/audit-log.module");
 const bonus_module_1 = require("./bonus/bonus.module");
 let AppModule = class AppModule {
@@ -30,6 +31,7 @@ exports.AppModule = AppModule = __decorate([
             stage_module_1.StageModule,
             audit_log_module_1.AuditLogModule,
             bonus_module_1.BonusModule,
+            call_module_1.CallModule,
         ],
         controllers: [call_controller_1.CallController],
     })

@@ -1,9 +1,7 @@
-import { Controller, Get, Req, UseGuards, Param, ForbiddenException } from '@nestjs/common';
+import { Controller, Get, Req, Param, ForbiddenException } from '@nestjs/common';
 import { BonusService } from './bonus.service';
-import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { Request } from 'express';
 
-@UseGuards(JwtAuthGuard)
 @Controller('bonus')
 export class BonusController {
   constructor(private readonly bonusService: BonusService) {}
@@ -23,10 +21,9 @@ export class BonusController {
   }
 
   @Get('by-lead/:id')
-  @UseGuards(JwtAuthGuard)
-    async getBonusesByLead(@Param('id') id: number, @Req() req: Request & { user?: any }) {
+  async getBonusesByLead(@Param('id') id: number, @Req() req: Request & { user?: any }) {
     if (req.user?.role !== 'owner') {
-        throw new ForbiddenException('Только владельцы могут просматривать бонусы по клиенту');
+      throw new ForbiddenException('Только владельцы могут просматривать бонусы по клиенту');
     }
     return this.bonusService.getBonusesByLead(id);
   }

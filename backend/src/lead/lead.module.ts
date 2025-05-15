@@ -5,11 +5,13 @@ import { LeadService } from './lead.service';
 import { LeadController } from './lead.controller';
 import { AuditLogModule } from '../audit-log/audit-log.module';
 import { BonusModule } from '../bonus/bonus.module';
-import { Bonus } from '../bonus/bonus.entity';
+import { User } from '../user/user.entity';
+import { OwnerBonus } from '../bonus/owner-bonus.entity';
+import { ManagerBonus } from '../bonus/manager-bonus.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Lead, Bonus]),
+    TypeOrmModule.forFeature([Lead, ManagerBonus, OwnerBonus, User,]),
     AuditLogModule,
     BonusModule,
   ],

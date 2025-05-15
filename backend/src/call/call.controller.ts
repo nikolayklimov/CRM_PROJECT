@@ -10,9 +10,6 @@ import { StageService } from '../stage/stage.service';
 import { StageType } from '../stage/stage.entity';
 import { AuditLogService } from '../audit-log/audit-log.service';
 import { Request } from 'express';
-import { JwtAuthGuard } from '../auth/jwt-auth.guard';
-
-@UseGuards(JwtAuthGuard)
 @Controller('call')
 export class CallController {
   constructor(
@@ -27,23 +24,42 @@ export class CallController {
   ) {
     const { leadId, managerId } = body;
 
-    const existing = await this.stageService.findActiveStage(
-      leadId,
-      StageType.STAGE_1,
-    );
+    const manager = await this.stageService.getManager(managerId);
+    if (!manager) {
+      throw new BadRequestException('Менеджер не найден');
+    }
+
+    let stageType: StageType;
+    switch (manager.managerLevel) {
+      case 1:
+        stageType = StageType.STAGE_1;
+        break;
+      case 2:
+        stageType = StageType.STAGE_2;
+        break;
+      case 3:
+        stageType = StageType.STAGE_3;
+        break;
+      default:
+        throw new BadRequestException('Некорректный уровень менеджера');
+    }
+
+    const existing = await this.stageService.findActiveStage(leadId, stageType);
     if (existing) {
-      throw new BadRequestException('Stage 1 already started for this lead');
+      throw new BadRequestException(`Stage ${stageType} уже начат для лида`);
     }
 
     const result = await this.stageService.create({
-      type: StageType.STAGE_1,
+      type: stageType,
       lead: leadId,
       manager: managerId,
       notes: 'Звонок начат вручную',
     });
 
+    await this.stageService.updateLeadStatus(leadId, 'in_work');
+
     await this.auditService.logAction(
-      (req.user as any)?.id,
+      req.user?.id,
       'POST',
       '/call/start',
       body,

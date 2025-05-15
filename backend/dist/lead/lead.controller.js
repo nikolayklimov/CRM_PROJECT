@@ -17,7 +17,6 @@ const common_1 = require("@nestjs/common");
 const platform_express_1 = require("@nestjs/platform-express");
 const lead_service_1 = require("./lead.service");
 const create_lead_dto_1 = require("./create-lead.dto");
-const jwt_auth_guard_1 = require("../auth/jwt-auth.guard");
 const sync_1 = require("csv-parse/sync");
 const audit_log_service_1 = require("../audit-log/audit-log.service");
 let LeadController = class LeadController {
@@ -48,10 +47,10 @@ let LeadController = class LeadController {
         }
         return createdLeads;
     }
-    async updateStatus(req, id, status) {
+    async updateStatus(req, id, status, visibleToLevel) {
         var _a;
-        const lead = await this.leadService.updateStatus(id, status);
-        await this.auditService.logAction((_a = req.user) === null || _a === void 0 ? void 0 : _a.id, 'PATCH', `/lead/${id}/status`, { status }, 'update_status', lead.id, `Обновлён статус лида: ${lead.full_name} (ID ${lead.id}) → ${status}`);
+        const lead = await this.leadService.updateStatus(id, status, visibleToLevel);
+        await this.auditService.logAction((_a = req.user) === null || _a === void 0 ? void 0 : _a.id, 'PATCH', `/lead/${id}/status`, { status, visibleToLevel }, 'update_status', lead.id, `Обновлён статус лида: ${lead.full_name} (ID ${lead.id}) → ${status}, уровень видимости → ${visibleToLevel}`);
         return lead;
     }
     async updateProfit(req, id, profit) {
@@ -112,8 +111,9 @@ __decorate([
     __param(0, (0, common_1.Req)()),
     __param(1, (0, common_1.Param)('id')),
     __param(2, (0, common_1.Body)('status')),
+    __param(3, (0, common_1.Body)('visibleToLevel')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object, Number, String]),
+    __metadata("design:paramtypes", [Object, Number, String, Number]),
     __metadata("design:returntype", Promise)
 ], LeadController.prototype, "updateStatus", null);
 __decorate([
@@ -160,7 +160,6 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], LeadController.prototype, "getBonus", null);
 exports.LeadController = LeadController = __decorate([
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
     (0, common_1.Controller)('lead'),
     __metadata("design:paramtypes", [lead_service_1.LeadService,
         audit_log_service_1.AuditLogService])

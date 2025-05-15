@@ -18,7 +18,6 @@ const stage_service_1 = require("./stage.service");
 const create_stage_dto_1 = require("./dto/create-stage.dto");
 const stage_entity_1 = require("./stage.entity");
 const audit_log_service_1 = require("../audit-log/audit-log.service");
-const jwt_auth_guard_1 = require("../auth/jwt-auth.guard");
 let StageController = class StageController {
     constructor(stageService, auditService) {
         this.stageService = stageService;
@@ -65,7 +64,6 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], StageController.prototype, "getActiveStage", null);
 exports.StageController = StageController = __decorate([
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
     (0, common_1.Controller)('stage'),
     __metadata("design:paramtypes", [stage_service_1.StageService,
         audit_log_service_1.AuditLogService])

@@ -1,10 +1,9 @@
 import { User } from '../user/user.entity';
 import { Lead } from '../lead/lead.entity';
-export declare class Bonus {
+export declare class OwnerBonus {
     id: number;
-    manager: User;
+    owner: User;
     lead: Lead;
     amount: number;
-    percent: number;
     created_at: Date;
 }

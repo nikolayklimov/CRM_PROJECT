@@ -17,7 +17,6 @@ const common_1 = require("@nestjs/common");
 const stage_service_1 = require("../stage/stage.service");
 const stage_entity_1 = require("../stage/stage.entity");
 const audit_log_service_1 = require("../audit-log/audit-log.service");
-const jwt_auth_guard_1 = require("../auth/jwt-auth.guard");
 let CallController = class CallController {
     constructor(stageService, auditService) {
         this.stageService = stageService;
@@ -26,16 +25,35 @@ let CallController = class CallController {
     async startCall(req, body) {
         var _a;
         const { leadId, managerId } = body;
-        const existing = await this.stageService.findActiveStage(leadId, stage_entity_1.StageType.STAGE_1);
+        const manager = await this.stageService.getManager(managerId);
+        if (!manager) {
+            throw new common_1.BadRequestException('Менеджер не найден');
+        }
+        let stageType;
+        switch (manager.managerLevel) {
+            case 1:
+                stageType = stage_entity_1.StageType.STAGE_1;
+                break;
+            case 2:
+                stageType = stage_entity_1.StageType.STAGE_2;
+                break;
+            case 3:
+                stageType = stage_entity_1.StageType.STAGE_3;
+                break;
+            default:
+                throw new common_1.BadRequestException('Некорректный уровень менеджера');
+        }
+        const existing = await this.stageService.findActiveStage(leadId, stageType);
         if (existing) {
-            throw new common_1.BadRequestException('Stage 1 already started for this lead');
+            throw new common_1.BadRequestException(`Stage ${stageType} уже начат для лида`);
         }
         const result = await this.stageService.create({
-            type: stage_entity_1.StageType.STAGE_1,
+            type: stageType,
             lead: leadId,
             manager: managerId,
             notes: 'Звонок начат вручную',
         });
+        await this.stageService.updateLeadStatus(leadId, 'in_work');
         await this.auditService.logAction((_a = req.user) === null || _a === void 0 ? void 0 : _a.id, 'POST', '/call/start', body, 'call_start', result.id, `Менеджер ${managerId} начал звонок по лиду ${leadId}`);
         return result;
     }
@@ -64,7 +82,6 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], CallController.prototype, "endCall", null);
 exports.CallController = CallController = __decorate([
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
     (0, common_1.Controller)('call'),
     __metadata("design:paramtypes", [stage_service_1.StageService,
         audit_log_service_1.AuditLogService])

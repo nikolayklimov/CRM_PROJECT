@@ -12,12 +12,13 @@ const typeorm_1 = require("@nestjs/typeorm");
 const bonus_controller_1 = require("./bonus.controller");
 const bonus_service_1 = require("./bonus.service");
 const manager_bonus_entity_1 = require("./manager-bonus.entity");
+const owner_bonus_entity_1 = require("../bonus/owner-bonus.entity");
 let BonusModule = class BonusModule {
 };
 exports.BonusModule = BonusModule;
 exports.BonusModule = BonusModule = __decorate([
     (0, common_1.Module)({
-        imports: [typeorm_1.TypeOrmModule.forFeature([manager_bonus_entity_1.ManagerBonus])],
+        imports: [typeorm_1.TypeOrmModule.forFeature([manager_bonus_entity_1.ManagerBonus, owner_bonus_entity_1.OwnerBonus])],
         controllers: [bonus_controller_1.BonusController],
         providers: [bonus_service_1.BonusService],
         exports: [

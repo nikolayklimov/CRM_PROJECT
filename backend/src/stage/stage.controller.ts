@@ -3,10 +3,8 @@ import { StageService } from './stage.service';
 import { CreateStageDto } from './dto/create-stage.dto';
 import { Stage, StageType } from './stage.entity';
 import { AuditLogService } from '../audit-log/audit-log.service';
-import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { Request } from 'express';
 
-@UseGuards(JwtAuthGuard)
 @Controller('stage')
 export class StageController {
   constructor(

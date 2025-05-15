@@ -9,38 +9,34 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.Bonus = void 0;
+exports.OwnerBonus = void 0;
 const typeorm_1 = require("typeorm");
 const user_entity_1 = require("../user/user.entity");
 const lead_entity_1 = require("../lead/lead.entity");
-let Bonus = class Bonus {
+let OwnerBonus = class OwnerBonus {
 };
-exports.Bonus = Bonus;
+exports.OwnerBonus = OwnerBonus;
 __decorate([
     (0, typeorm_1.PrimaryGeneratedColumn)(),
     __metadata("design:type", Number)
-], Bonus.prototype, "id", void 0);
+], OwnerBonus.prototype, "id", void 0);
 __decorate([
-    (0, typeorm_1.ManyToOne)(() => user_entity_1.User, { eager: true }),
+    (0, typeorm_1.ManyToOne)(() => user_entity_1.User),
     __metadata("design:type", user_entity_1.User)
-], Bonus.prototype, "manager", void 0);
+], OwnerBonus.prototype, "owner", void 0);
 __decorate([
-    (0, typeorm_1.ManyToOne)(() => lead_entity_1.Lead, { eager: true }),
+    (0, typeorm_1.ManyToOne)(() => lead_entity_1.Lead),
     __metadata("design:type", lead_entity_1.Lead)
-], Bonus.prototype, "lead", void 0);
+], OwnerBonus.prototype, "lead", void 0);
 __decorate([
     (0, typeorm_1.Column)({ type: 'float' }),
     __metadata("design:type", Number)
-], Bonus.prototype, "amount", void 0);
-__decorate([
-    (0, typeorm_1.Column)({ type: 'float' }),
-    __metadata("design:type", Number)
-], Bonus.prototype, "percent", void 0);
+], OwnerBonus.prototype, "amount", void 0);
 __decorate([
     (0, typeorm_1.CreateDateColumn)(),
     __metadata("design:type", Date)
-], Bonus.prototype, "created_at", void 0);
-exports.Bonus = Bonus = __decorate([
+], OwnerBonus.prototype, "created_at", void 0);
+exports.OwnerBonus = OwnerBonus = __decorate([
     (0, typeorm_1.Entity)()
-], Bonus);
-//# sourceMappingURL=bonus.entity.js.map
+], OwnerBonus);
+//# sourceMappingURL=owner-bonus.entity.js.map

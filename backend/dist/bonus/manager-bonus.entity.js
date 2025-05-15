@@ -41,6 +41,6 @@ __decorate([
     __metadata("design:type", Date)
 ], ManagerBonus.prototype, "created_at", void 0);
 exports.ManagerBonus = ManagerBonus = __decorate([
-    (0, typeorm_1.Entity)()
+    (0, typeorm_1.Entity)('manager_bonus')
 ], ManagerBonus);
 //# sourceMappingURL=manager-bonus.entity.js.map
