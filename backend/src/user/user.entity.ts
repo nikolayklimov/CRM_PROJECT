@@ -35,4 +35,7 @@ export class User {
 
   @Column({ nullable: true })
   managerLevel?: number; // 1, 2 или 3 — если пользователь менеджер
+
+  @Column({ type: 'int', nullable: true })
+  callCenter: number; // 1 или 2
 }

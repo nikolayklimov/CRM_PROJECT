@@ -25,6 +25,8 @@ let JwtStrategy = class JwtStrategy extends (0, passport_1.PassportStrategy)(pas
         return {
             id: payload.sub,
             role: payload.role,
+            managerLevel: payload.managerLevel,
+            callCenter: payload.callCenter,
         };
     }
 };

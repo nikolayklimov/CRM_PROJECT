@@ -1,6 +1,7 @@
 export declare class CreateLeadDto {
     full_name?: string;
     phone?: string;
+    call_center: number;
     email?: string;
     country?: string;
     city?: string;
@@ -12,5 +13,4 @@ export declare class CreateLeadDto {
     priority?: 'hot' | 'warm' | 'cold';
     source?: string;
     source_subid?: string;
-    notes?: string;
 }

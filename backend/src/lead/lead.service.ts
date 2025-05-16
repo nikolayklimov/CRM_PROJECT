@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, Not } from 'typeorm';
 import { Lead } from './lead.entity';
 import { CreateLeadDto } from './create-lead.dto';
 import { StageStatus } from '../stage/stage.entity';
@@ -8,6 +8,11 @@ import { ManagerBonus } from '../bonus/manager-bonus.entity';
 import { OwnerBonus } from '../bonus/owner-bonus.entity';
 import { User } from '../user/user.entity';
 import { ManagerBonusInfo, LeadBonusResult } from './types/lead-bonus-result.interface';
+import { LeadNote } from './lead-note/lead-note.entity'
+import { UpdateLeadDto } from './update-lead.dto';
+import { LeadChangeLog } from './lead-change-log.entity';
+import { DailyBonusSummary } from '../bonus/daily-bonus-summary.entity';
+import { maskPhone } from '../utils/phone-mask';
 
 @Injectable()
 export class LeadService {
@@ -20,10 +25,52 @@ export class LeadService {
     private ownerBonusRepository: Repository<OwnerBonus>,
     @InjectRepository(User)
     private userRepository: Repository<User>,
+    @InjectRepository(LeadNote)
+    private leadNoteRepository: Repository<LeadNote>,
+    @InjectRepository(LeadChangeLog)
+    private leadChangeLogRepository: Repository<LeadChangeLog>,
+    @InjectRepository(DailyBonusSummary)
+    private dailySummaryRepository: Repository<DailyBonusSummary>,
   ) {}
 
-  findAll(): Promise<Lead[]> {
-    return this.leadRepository.find();
+
+  async findAll(user?: User): Promise<Lead[]> {
+    if (!user) {
+      throw new Error('User is undefined');
+    }
+
+    let leads: Lead[] = [];
+
+    // 👑 Админы и владельцы видят всё без маскировки
+    if (user.role === 'admin' || user.role === 'owner') {
+      leads = await this.leadRepository.find();
+    }
+
+    // 👷 Менеджеры — фильтрация и маскировка телефона
+    if (user.role === 'manager') {
+      leads = await this.leadRepository.find({
+        where: [
+          {
+            status: 'new',
+            visible_to_level: user.managerLevel,
+            call_center: user.callCenter,
+          },
+          {
+            assigned_to: user.id,
+            visible_to_level: user.managerLevel,
+            call_center: user.callCenter,
+            status: Not('closed'),
+          },
+        ],
+      });
+
+      leads = leads.map((lead) => ({
+        ...lead,
+        phone: maskPhone(lead.phone),
+      }));
+    }
+
+    return leads;
   }
 
   async createLead(dto: CreateLeadDto): Promise<Lead> {
@@ -77,6 +124,7 @@ export class LeadService {
 
     const bonusByManager: Record<number, ManagerBonusInfo> = {};
 
+    // 👥 Менеджеры
     for (const stage of lead.stages) {
       if (stage.status === StageStatus.COMPLETED && stagePercents[stage.type]) {
         const managerId = stage.manager?.id;
@@ -102,6 +150,7 @@ export class LeadService {
 
     result.managers = Object.values(bonusByManager);
 
+    // 👑 Владельцы
     const owners = await this.userRepository.find({ where: { role: 'owner' } });
     const remaining = lead.profit - result.totalManagerBonus;
     const share = Math.floor((remaining / owners.length) * 100) / 100;
@@ -116,14 +165,47 @@ export class LeadService {
     return result;
   }
 
-  async assignManager(id: number, managerId: number): Promise<Lead> {
+  async assignManager(id: number, managerId: number, user: User): Promise<Lead> {
     const lead = await this.leadRepository.findOneBy({ id });
     if (!lead) throw new Error(`Lead with id ${id} not found`);
+
+    // Проверка: менеджер может брать себе только лидов, которых он "видит"
+    const canSee = (
+      user.role === 'manager' &&
+      lead.status === 'new' &&
+      lead.visible_to_level === user.managerLevel &&
+      lead.call_center === user.callCenter &&
+      lead.assigned_to === null
+    );
+
+    if (!canSee) {
+      throw new Error('Вы не можете назначить себе этого лида — нет доступа или он уже назначен');
+    }
+
+    if (user.role !== 'manager' || user.id !== managerId) {
+      throw new Error('Менеджер может назначать только себя');
+    }
+
+    if (lead.assigned_to !== null || lead.status !== 'new') {
+      throw new Error('Лид уже назначен или находится не в статусе "new"');
+    }
 
     lead.assigned_to = managerId;
 
     if (lead.status === 'new') {
       lead.status = 'in_work';
+    }
+
+    const manager = await this.userRepository.findOneBy({ id: managerId });
+
+    if (manager?.role === 'manager') {
+      if (manager.managerLevel === 1 && !lead.manager1Id) {
+        lead.manager1Id = managerId;
+      } else if (manager.managerLevel === 2 && !lead.manager2Id) {
+        lead.manager2Id = managerId;
+      } else if (manager.managerLevel === 3 && !lead.manager3Id) {
+        lead.manager3Id = managerId;
+      }
     }
 
     return this.leadRepository.save(lead);
@@ -134,33 +216,68 @@ export class LeadService {
     status: Lead['status'],
     notes: string,
     profit: number | undefined,
-    user: { id: number; role: string },
+    user: { id: number; role: string; managerLevel?: number; callCenter?: number },
   ): Promise<Lead> {
+
     const lead = await this.leadRepository.findOneBy({ id });
     if (!lead) throw new Error(`Lead with id ${id} not found`);
 
-    lead.status = status;
-    lead.notes = notes;
+    const canAccess =
+      user.role === 'admin' || user.role === 'owner' ||
+      (user.role === 'manager' &&
+        lead.visible_to_level === user.managerLevel &&
+        lead.assigned_to === user.id &&
+        lead.status !== 'closed');
 
-    if (status === 'cut') {
+    if (!canAccess) {
+      throw new Error('Нет доступа к этому лиду');
+    }
+
+    // сохраняем КЦ
+    if (user.role === 'manager') {
+      lead.call_center = user.callCenter ?? 1;
+
+      // сохраняем ID менеджера этапа
+      if (user.managerLevel === 1) {
+        lead.manager1Id = user.id;
+      } else if (user.managerLevel === 2) {
+        lead.manager2Id = user.id;
+      } else if (user.managerLevel === 3) {
+        lead.manager3Id = user.id;
+      }
+    }
+
+    // ✅ если передают со статусом "new" — это сигнал передать на след. уровень
+    if (
+      status === 'new' &&
+      user.role === 'manager' &&
+      lead.assigned_to === user.id &&
+      (user.managerLevel === 1 || user.managerLevel === 2)
+    ) {
+      const nextLevel = user.managerLevel + 1;
+
+      lead.assigned_to = null;
+      lead.visible_to_level = nextLevel;
+      lead.status = 'new';
+    }
+
+    // ❌ если это срез
+    else if (status === 'cut') {
       lead.assigned_to = null;
       lead.visible_to_level = 0;
+      lead.result_status = 'fail';
+      lead.status = 'cut';
     }
 
-    if (status === 'to_level2') {
+    // ✅ если это закрытие сделки
+    else if (status === 'closed' && profit != null) {
       lead.assigned_to = null;
-      lead.visible_to_level = 2;
-    }
-
-    if (status === 'to_level3') {
-      lead.assigned_to = null;
-      lead.visible_to_level = 3;
-    }
-
-    if (status === 'closed' && profit != null) {
+      lead.visible_to_level = 0;
       lead.profit = profit;
-      lead.visible_to_level = 0;
+      lead.result_status = 'success';
+      lead.status = 'closed';
 
+      // бонусы — оставить как есть
       const leadWithStages = await this.leadRepository.find({
         where: { id },
         relations: ['stages', 'stages.manager'],
@@ -173,7 +290,9 @@ export class LeadService {
       };
 
       let totalManagerBonus = 0;
+      const today = new Date().toISOString().split('T')[0];
 
+      // 🧮 Менеджеры
       for (const stage of leadWithStages?.stages || []) {
         if (
           stage.status === StageStatus.COMPLETED &&
@@ -181,31 +300,120 @@ export class LeadService {
           stagePercents[stage.type]
         ) {
           const percent = stagePercents[stage.type];
-          const bonusAmount = Math.floor(profit * percent * 100) / 100;
+          const bonusAmount = Math.floor((profit * percent / 100) * 100) / 100;
 
-          const bonus = this.bonusRepository.create({
-            manager: stage.manager,
-            lead: lead,
-            percent,
-            amount: bonusAmount,
+          await this.bonusRepository.save(
+            this.bonusRepository.create({
+              manager: stage.manager,
+              lead: lead,
+              percent,
+              amount: bonusAmount,
+            })
+          );
+
+          totalManagerBonus += bonusAmount;
+
+          const existing = await this.dailySummaryRepository.findOne({
+            where: {
+              user: { id: stage.manager.id },
+              date: today,
+            },
           });
 
-          await this.bonusRepository.save(bonus);
-          totalManagerBonus += bonusAmount;
+          if (existing) {
+            existing.totalBonus += bonusAmount;
+            await this.dailySummaryRepository.save(existing);
+          } else {
+            await this.dailySummaryRepository.save({
+              user: { id: stage.manager.id },
+              callCenter: stage.manager.callCenter,
+              managerLevel: stage.manager.managerLevel,
+              totalBonus: bonusAmount,
+              date: today,
+            });
+          }
         }
       }
 
+      // 🧮 Владельцы
       const owners = await this.userRepository.find({ where: { role: 'owner' } });
       const remaining = profit - totalManagerBonus;
       const share = Math.floor((remaining / owners.length) * 100) / 100;
 
       for (const owner of owners) {
-        const ownerBonus = this.ownerBonusRepository.create({
-          owner,
-          lead,
-          amount: share,
+        await this.ownerBonusRepository.save(
+          this.ownerBonusRepository.create({
+            owner,
+            lead,
+            amount: share,
+          })
+        );
+
+        const existingSummary = await this.dailySummaryRepository.findOne({
+          where: {
+            user: { id: owner.id },
+            date: today,
+          },
         });
-        await this.ownerBonusRepository.save(ownerBonus);
+
+        if (existingSummary) {
+          existingSummary.totalBonus += share;
+          await this.dailySummaryRepository.save(existingSummary);
+        } else {
+          await this.dailySummaryRepository.save({
+            user: { id: owner.id },
+            callCenter: lead.call_center,
+            managerLevel: 0,
+            totalBonus: share,
+            date: today,
+          });
+        }
+      }
+    }
+
+    // сохраняем заметку
+    await this.leadNoteRepository.save({
+      lead: { id: lead.id },
+      manager: { id: user.id },
+      note: notes,
+      managerLevel: user.managerLevel,
+      callCenter: user.callCenter,
+    });
+
+    return this.leadRepository.save(lead);
+  }
+
+  async updateLeadFields(id: number, dto: UpdateLeadDto, user: User): Promise<Lead> {
+    const lead = await this.leadRepository.findOneBy({ id });
+    if (!lead) throw new Error(`Lead with id ${id} not found`);
+
+    const canAccess =
+      user.role === 'admin' || user.role === 'owner' ||
+      (user.role === 'manager' &&
+        lead.visible_to_level === user.managerLevel &&
+        lead.assigned_to === user.id &&
+        lead.status !== 'closed');
+
+    if (!canAccess) {
+      throw new Error('Нет доступа к редактированию этого лида');
+    }
+
+    const allowedFields = Object.keys(dto).filter((key) => key !== 'phone');
+
+    for (const field of allowedFields) {
+      const oldValue = lead[field];
+      const newValue = dto[field];
+
+      if (oldValue !== newValue) {
+        await this.leadChangeLogRepository.save({
+          lead: { id },
+          manager: { id: user.id },
+          field,
+          oldValue,
+          newValue,
+        });
+
+        lead[field] = newValue;
       }
     }
 

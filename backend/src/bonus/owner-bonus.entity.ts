@@ -1,4 +1,11 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, CreateDateColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  CreateDateColumn,
+  JoinColumn
+} from 'typeorm';
 import { User } from '../user/user.entity';
 import { Lead } from '../lead/lead.entity';
 
@@ -7,8 +14,12 @@ export class OwnerBonus {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @ManyToOne(() => User)
+  @ManyToOne(() => User, { eager: true })
+  @JoinColumn({ name: 'ownerId' })
   owner: User;
+
+  @Column()
+  ownerId: number;
 
   @ManyToOne(() => Lead)
   lead: Lead;

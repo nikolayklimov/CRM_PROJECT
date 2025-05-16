@@ -11,4 +11,5 @@ export declare class User {
     bonuses: ManagerBonus[];
     ownerBonuses: OwnerBonus[];
     managerLevel?: number;
+    callCenter: number;
 }

@@ -13,6 +13,7 @@ import {
   ManyToOne,
   CreateDateColumn,
   UpdateDateColumn,
+  Index,
 } from 'typeorm';
 import { Lead } from '../lead/lead.entity';
 import { User } from '../user/user.entity';
@@ -35,17 +36,15 @@ export class Stage {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({
-    type: 'enum',
-    enum: StageType,
-  })
+  @Column({ type: 'enum', enum: StageType })
+  @Index()
   type: StageType;
 
-  @ManyToOne(() => Lead, (lead) => lead.stages, { onDelete: 'CASCADE' })
+  @ManyToOne(() => Lead, (lead) => lead.stages, { onDelete: 'CASCADE', nullable: false })
   lead: Lead;
 
-	@ManyToOne(() => User, (user) => user.stages)
-	manager: User;
+  @ManyToOne(() => User, (user) => user.stages, { nullable: false })
+  manager: User;
 
   @Column({ type: 'enum', enum: StageStatus, default: StageStatus.ACTIVE })
   status: StageStatus;

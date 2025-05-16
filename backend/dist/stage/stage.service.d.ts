@@ -13,4 +13,5 @@ export declare class StageService {
     create(dto: CreateStageDto): Promise<Stage>;
     completeStage(id: number): Promise<Stage>;
     findActiveStage(leadId: number, type: StageType): Promise<Stage | null>;
+    completeStageByLeadId(leadId: number, user: User): Promise<Stage>;
 }

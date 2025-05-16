@@ -6,9 +6,8 @@ export declare class CallController {
     constructor(stageService: StageService, auditService: AuditLogService);
     startCall(req: any, body: {
         leadId: number;
-        managerId: number;
     }): Promise<import("../stage/stage.entity").Stage>;
     endCall(req: any, body: {
-        stageId: number;
+        leadId: number;
     }): Promise<import("../stage/stage.entity").Stage>;
 }

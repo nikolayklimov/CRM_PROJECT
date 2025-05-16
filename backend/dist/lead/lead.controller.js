@@ -19,13 +19,15 @@ const lead_service_1 = require("./lead.service");
 const create_lead_dto_1 = require("./create-lead.dto");
 const sync_1 = require("csv-parse/sync");
 const audit_log_service_1 = require("../audit-log/audit-log.service");
+const jwt_auth_guard_1 = require("../auth/jwt-auth.guard");
+const update_lead_dto_1 = require("./update-lead.dto");
 let LeadController = class LeadController {
     constructor(leadService, auditService) {
         this.leadService = leadService;
         this.auditService = auditService;
     }
-    async getAll() {
-        return this.leadService.findAll();
+    async getAll(req) {
+        return this.leadService.findAll(req.user);
     }
     async create(req, dto) {
         var _a;
@@ -59,10 +61,15 @@ let LeadController = class LeadController {
         await this.auditService.logAction((_a = req.user) === null || _a === void 0 ? void 0 : _a.id, 'PATCH', `/lead/${id}/profit`, { profit }, 'update_profit', lead.id, `Обновлён профит лида: ${lead.full_name} (ID ${lead.id}) на ${profit}`);
         return lead;
     }
-    async assignManager(req, id, managerId) {
+    async assignManager(req, id) {
         var _a;
-        const lead = await this.leadService.assignManager(id, managerId);
-        await this.auditService.logAction((_a = req.user) === null || _a === void 0 ? void 0 : _a.id, 'PATCH', `/lead/${id}/assign`, { managerId }, 'assign_manager', lead.id, `Назначен менеджер ID ${managerId} для лида: ${lead.full_name} (ID ${lead.id})`);
+        const managerId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id;
+        const user = req.user;
+        if (!managerId) {
+            throw new Error('Manager ID not found in token');
+        }
+        const lead = await this.leadService.assignManager(id, managerId, user);
+        await this.auditService.logAction(managerId, 'PATCH', `/lead/${id}/assign`, {}, 'assign_manager', lead.id, `Назначен менеджер ID ${managerId} для лида: ${lead.full_name} (ID ${lead.id})`);
         return lead;
     }
     async afterCall(req, id, body) {
@@ -74,10 +81,14 @@ let LeadController = class LeadController {
     }
     async handleAfterCall(req, id, body) {
         var _a;
-        const { status, notes, profit } = body;
-        const lead = await this.leadService.handleAfterCall(id, status, notes, profit, req.user);
-        await this.auditService.logAction((_a = req.user) === null || _a === void 0 ? void 0 : _a.id, 'PATCH', `/lead/${id}/after-call`, { status, notes, profit }, 'after_call_update', lead.id, `После звонка: ${lead.full_name} (ID ${lead.id}) → статус: ${status}`);
+        const { status, note, profit } = body;
+        const lead = await this.leadService.handleAfterCall(id, status, note !== null && note !== void 0 ? note : '', profit, req.user);
+        await this.auditService.logAction((_a = req.user) === null || _a === void 0 ? void 0 : _a.id, 'PATCH', `/lead/${id}/after-call`, { status, note, profit }, 'after_call_update', lead.id, `После звонка: ${lead.full_name} (ID ${lead.id}) → статус: ${status}`);
         return lead;
+    }
+    async updateLeadFields(id, dto, req) {
+        const user = req.user;
+        return this.leadService.updateLeadFields(+id, dto, user);
     }
     async getBonus(id) {
         return this.leadService.getLeadBonuses(id);
@@ -86,8 +97,9 @@ let LeadController = class LeadController {
 exports.LeadController = LeadController;
 __decorate([
     (0, common_1.Get)(),
+    __param(0, (0, common_1.Req)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", []),
+    __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], LeadController.prototype, "getAll", null);
 __decorate([
@@ -129,9 +141,8 @@ __decorate([
     (0, common_1.Patch)(':id/assign'),
     __param(0, (0, common_1.Req)()),
     __param(1, (0, common_1.Param)('id')),
-    __param(2, (0, common_1.Body)('managerId')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object, Number, Number]),
+    __metadata("design:paramtypes", [Object, Number]),
     __metadata("design:returntype", Promise)
 ], LeadController.prototype, "assignManager", null);
 __decorate([
@@ -152,6 +163,16 @@ __decorate([
     __metadata("design:paramtypes", [Object, Number, Object]),
     __metadata("design:returntype", Promise)
 ], LeadController.prototype, "handleAfterCall", null);
+__decorate([
+    (0, common_1.Patch)(':id/edit'),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Body)()),
+    __param(2, (0, common_1.Req)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number, update_lead_dto_1.UpdateLeadDto, Object]),
+    __metadata("design:returntype", Promise)
+], LeadController.prototype, "updateLeadFields", null);
 __decorate([
     (0, common_1.Get)(':id/bonus'),
     __param(0, (0, common_1.Param)('id')),

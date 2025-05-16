@@ -10,6 +10,7 @@ import { StageService } from '../stage/stage.service';
 import { StageType } from '../stage/stage.entity';
 import { AuditLogService } from '../audit-log/audit-log.service';
 import { Request } from 'express';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 @Controller('call')
 export class CallController {
   constructor(
@@ -20,9 +21,14 @@ export class CallController {
   @Post('start')
   async startCall(
     @Req() req: any,
-    @Body() body: { leadId: number; managerId: number },
+    @Body() body: { leadId: number }
   ) {
-    const { leadId, managerId } = body;
+    const { leadId } = body;
+
+    const managerId = req.user?.id;
+    if (!managerId) {
+      throw new BadRequestException('Manager ID not found in token');
+    }
 
     const manager = await this.stageService.getManager(managerId);
     if (!manager) {
@@ -62,7 +68,7 @@ export class CallController {
       req.user?.id,
       'POST',
       '/call/start',
-      body,
+      { leadId },
       'call_start',
       result.id,
       `Менеджер ${managerId} начал звонок по лиду ${leadId}`,
@@ -72,17 +78,19 @@ export class CallController {
   }
 
   @Post('end')
-  async endCall(@Req() req: any, @Body() body: { stageId: number }) {
-    const result = await this.stageService.completeStage(body.stageId);
+  @UseGuards(JwtAuthGuard)
+  async endCall(@Req() req: any, @Body() body: { leadId: number }) {
+    const user = req.user;
+    const result = await this.stageService.completeStageByLeadId(body.leadId, user);
 
     await this.auditService.logAction(
-      (req.user as any)?.id,
+      user?.id,
       'POST',
       '/call/end',
       body,
       'call_end',
       result.id,
-      `Звонок завершён. Этап ID ${result.id}`,
+      `Звонок завершён. Этап ID ${result.id} по лиду ID ${body.leadId}`,
     );
 
     return result;

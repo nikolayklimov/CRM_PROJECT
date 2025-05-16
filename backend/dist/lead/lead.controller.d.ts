@@ -4,11 +4,15 @@ import { CreateLeadDto } from './create-lead.dto';
 import { AuditLogService } from '../audit-log/audit-log.service';
 import { Request } from 'express';
 import { LeadBonusResult } from './types/lead-bonus-result.interface';
+import { User } from '../user/user.entity';
+import { UpdateLeadDto } from './update-lead.dto';
 export declare class LeadController {
     private readonly leadService;
     private readonly auditService;
     constructor(leadService: LeadService, auditService: AuditLogService);
-    getAll(): Promise<Lead[]>;
+    getAll(req: Request & {
+        user?: User;
+    }): Promise<Lead[]>;
     create(req: Request & {
         user?: any;
     }, dto: CreateLeadDto): Promise<Lead>;
@@ -21,7 +25,7 @@ export declare class LeadController {
     }, id: number, profit: number): Promise<Lead>;
     assignManager(req: Request & {
         user?: any;
-    }, id: number, managerId: number): Promise<Lead>;
+    }, id: number): Promise<Lead>;
     afterCall(req: Request & {
         user?: any;
     }, id: number, body: {
@@ -33,8 +37,9 @@ export declare class LeadController {
         user?: any;
     }, id: number, body: {
         status: Lead['status'];
-        notes: string;
+        note?: string;
         profit?: number;
     }): Promise<Lead>;
+    updateLeadFields(id: number, dto: UpdateLeadDto, req: Request): Promise<Lead>;
     getBonus(id: number): Promise<LeadBonusResult>;
 }

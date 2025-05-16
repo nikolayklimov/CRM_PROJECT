@@ -4,8 +4,11 @@ import {
   Column,
   CreateDateColumn,
   OneToMany,
+  ManyToOne, 
+  JoinColumn,
 } from 'typeorm';
 import { Stage } from '../stage/stage.entity';
+import { User } from '../user/user.entity';
 
 @Entity()
 export class Lead {
@@ -54,9 +57,6 @@ export class Lead {
   @Column({ nullable: true })
   source_subid: string;
 
-  @Column({ nullable: true, type: 'text' })
-  notes: string;
-
   @OneToMany(() => Stage, (stage) => stage.lead, { cascade: true })
   stages: Stage[];
 
@@ -70,9 +70,28 @@ export class Lead {
   @Column({ nullable: true, type: 'int' })
   assigned_to: number | null; // ID менеджера, если назначен
 
+  @ManyToOne(() => User, { nullable: true })
+  @JoinColumn({ name: 'assigned_to' })
+  assignedManager?: User;
+
   @Column({ type: 'int', default: 1 })
   visible_to_level: number; // 1, 2, 3
 
   @Column({ type: 'float', nullable: true })
   profit: number;
+
+  @Column({ type: 'int', nullable: true })
+  manager1Id: number;
+
+  @Column({ type: 'int', nullable: true })
+  manager2Id: number;
+
+  @Column({ type: 'int', nullable: true })
+  manager3Id: number;
+
+  @Column({ type: 'int', nullable: true })
+  call_center: number;
+
+  @Column({ type: 'enum', enum: ['success', 'fail'], nullable: true })
+  result_status: 'success' | 'fail';
 }

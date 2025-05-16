@@ -8,10 +8,21 @@ import { BonusModule } from '../bonus/bonus.module';
 import { User } from '../user/user.entity';
 import { OwnerBonus } from '../bonus/owner-bonus.entity';
 import { ManagerBonus } from '../bonus/manager-bonus.entity';
+import { LeadNote } from './lead-note/lead-note.entity';
+import { LeadChangeLog } from './lead-change-log.entity';
+import { DailyBonusSummary } from '../bonus/daily-bonus-summary.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Lead, ManagerBonus, OwnerBonus, User,]),
+    TypeOrmModule.forFeature([
+      Lead,
+      ManagerBonus,
+      OwnerBonus,
+      User,
+      LeadNote,
+      LeadChangeLog,
+      DailyBonusSummary,
+    ]),
     AuditLogModule,
     BonusModule,
   ],

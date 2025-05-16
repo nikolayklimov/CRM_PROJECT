@@ -25,7 +25,7 @@ let AuthService = class AuthService {
         this.jwtService = jwtService;
     }
     async register(dto) {
-        var _a;
+        var _a, _b;
         console.log('👤 Регистрирую пользователя:', dto.name);
         const existing = await this.userRepository.findOne({
             where: { name: dto.name },
@@ -39,6 +39,7 @@ let AuthService = class AuthService {
             password: hashedPassword,
             role: dto.role,
             managerLevel: dto.role === 'manager' ? (_a = dto.managerLevel) !== null && _a !== void 0 ? _a : 1 : undefined,
+            callCenter: dto.role === 'manager' ? (_b = dto.callCenter) !== null && _b !== void 0 ? _b : 1 : undefined,
         });
         return this.userRepository.save(user);
     }
@@ -46,6 +47,7 @@ let AuthService = class AuthService {
         console.log('Login attempt:', dto.name);
         const user = await this.userRepository.findOne({
             where: { name: dto.name },
+            select: ['id', 'name', 'password', 'role', 'managerLevel', 'callCenter'],
         });
         if (!user) {
             throw new common_1.UnauthorizedException('Неверное имя или пароль');
@@ -58,6 +60,8 @@ let AuthService = class AuthService {
             sub: user.id,
             name: user.name,
             role: user.role,
+            managerLevel: user.managerLevel,
+            callCenter: user.callCenter,
         };
         const token = await this.jwtService.signAsync(payload);
         return { access_token: token };

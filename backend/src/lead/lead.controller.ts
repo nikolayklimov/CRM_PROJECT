@@ -18,6 +18,9 @@ import { parse } from 'csv-parse/sync';
 import { AuditLogService } from '../audit-log/audit-log.service';
 import { Request } from 'express';
 import { ManagerBonusInfo, LeadBonusResult } from './types/lead-bonus-result.interface';
+import { User } from '../user/user.entity';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { UpdateLeadDto } from './update-lead.dto';
 
 @Controller('lead')
 export class LeadController {
@@ -27,8 +30,8 @@ export class LeadController {
   ) {}
 
   @Get()
-  async getAll(): Promise<Lead[]> {
-    return this.leadService.findAll();
+  async getAll(@Req() req: Request & { user?: User }): Promise<Lead[]> {
+    return this.leadService.findAll(req.user);
   }
 
   @Post()
@@ -123,15 +126,21 @@ export class LeadController {
   async assignManager(
     @Req() req: Request & { user?: any },
     @Param('id') id: number,
-    @Body('managerId') managerId: number,
   ): Promise<Lead> {
-    const lead = await this.leadService.assignManager(id, managerId);
+    const managerId = req.user?.id;
+    const user = req.user;
+
+    if (!managerId) {
+      throw new Error('Manager ID not found in token');
+    }
+
+    const lead = await this.leadService.assignManager(id, managerId, user); // ✅ теперь 3 аргумента
 
     await this.auditService.logAction(
-      (req.user as any)?.id,
+      managerId,
       'PATCH',
       `/lead/${id}/assign`,
-      { managerId },
+      {}, // тело запроса больше не нужно
       'assign_manager',
       lead.id,
       `Назначен менеджер ID ${managerId} для лида: ${lead.full_name} (ID ${lead.id})`,
@@ -173,23 +182,34 @@ export class LeadController {
   async handleAfterCall(
     @Req() req: Request & { user?: any },
     @Param('id') id: number,
-    @Body() body: { status: Lead['status']; notes: string; profit?: number }
+    @Body() body: { status: Lead['status']; note?: string; profit?: number }
   ): Promise<Lead> {
-    const { status, notes, profit } = body;
+    const { status, note, profit } = body;
 
-    const lead = await this.leadService.handleAfterCall(id, status, notes, profit, req.user);
+    const lead = await this.leadService.handleAfterCall(id, status as Lead['status'], note ?? '', profit, req.user);
     
     await this.auditService.logAction(
       req.user?.id,
       'PATCH',
       `/lead/${id}/after-call`,
-      { status, notes, profit },
+      { status, note, profit },
       'after_call_update',
       lead.id,
       `После звонка: ${lead.full_name} (ID ${lead.id}) → статус: ${status}`
     );
 
     return lead;
+  }
+
+  @Patch(':id/edit')
+  @UseGuards(JwtAuthGuard)
+  async updateLeadFields(
+    @Param('id') id: number,
+    @Body() dto: UpdateLeadDto,
+    @Req() req: Request,
+  ) {
+    const user = req.user as any; // типизируй при желании
+    return this.leadService.updateLeadFields(+id, dto, user);
   }
 
   @Get(':id/bonus')

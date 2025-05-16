@@ -27,7 +27,15 @@ let UserService = class UserService {
         return this.userRepository.find();
     }
     async createUser(dto) {
-        const user = this.userRepository.create(dto);
+        var _a, _b;
+        const user = this.userRepository.create({
+            name: dto.name,
+            email: dto.email,
+            password: dto.password,
+            role: dto.role,
+            managerLevel: dto.role === 'manager' ? (_a = dto.managerLevel) !== null && _a !== void 0 ? _a : 1 : undefined,
+            callCenter: dto.role === 'manager' ? (_b = dto.callCenter) !== null && _b !== void 0 ? _b : 1 : undefined,
+        });
         return this.userRepository.save(user);
     }
     async getBonusesByUserId(userId) {

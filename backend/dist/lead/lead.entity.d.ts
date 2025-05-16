@@ -1,4 +1,5 @@
 import { Stage } from '../stage/stage.entity';
+import { User } from '../user/user.entity';
 export declare class Lead {
     id: number;
     full_name: string;
@@ -15,10 +16,15 @@ export declare class Lead {
     priority: 'hot' | 'warm' | 'cold';
     source: string;
     source_subid: string;
-    notes: string;
     stages: Stage[];
     status: 'new' | 'in_work' | 'callback' | 'cut' | 'to_level2' | 'to_level3' | 'closed';
     assigned_to: number | null;
+    assignedManager?: User;
     visible_to_level: number;
     profit: number;
+    manager1Id: number;
+    manager2Id: number;
+    manager3Id: number;
+    call_center: number;
+    result_status: 'success' | 'fail';
 }

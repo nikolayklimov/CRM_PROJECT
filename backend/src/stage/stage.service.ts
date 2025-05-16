@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Stage, StageType, StageStatus } from './stage.entity';
@@ -55,5 +55,41 @@ export class StageService {
 			},
 			relations: ['lead'],
 		});
+	}
+
+	async completeStageByLeadId(leadId: number, user: User): Promise<Stage> {
+		const stage = await this.stageRepository.findOne({
+			where: {
+				lead: { id: leadId },
+				manager: { id: user.id },
+				status: StageStatus.ACTIVE,
+			},
+			relations: ['lead', 'manager'],
+		});
+
+		if (!stage) {
+			throw new ForbiddenException(`Нет доступа к лидам или активная стадия не найдена`);
+		}
+
+		const lead = stage.lead;
+
+		const canAccess =
+			user.role === 'admin' || user.role === 'owner' ||
+			(user.role === 'manager' &&
+				lead.visible_to_level === user.managerLevel &&
+				lead.assigned_to === user.id &&
+				lead.status !== 'closed');
+
+		if (!canAccess) {
+			throw new ForbiddenException('Нет доступа к этому лиду');
+		}
+
+		stage.status = StageStatus.COMPLETED;
+		stage.finished_at = new Date();
+		stage.duration_seconds = Math.floor(
+			(+stage.finished_at - +stage.started_at) / 1000,
+		);
+
+		return this.stageRepository.save(stage);
 	}
 }

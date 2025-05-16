@@ -17,14 +17,19 @@ const common_1 = require("@nestjs/common");
 const stage_service_1 = require("../stage/stage.service");
 const stage_entity_1 = require("../stage/stage.entity");
 const audit_log_service_1 = require("../audit-log/audit-log.service");
+const jwt_auth_guard_1 = require("../auth/jwt-auth.guard");
 let CallController = class CallController {
     constructor(stageService, auditService) {
         this.stageService = stageService;
         this.auditService = auditService;
     }
     async startCall(req, body) {
-        var _a;
-        const { leadId, managerId } = body;
+        var _a, _b;
+        const { leadId } = body;
+        const managerId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id;
+        if (!managerId) {
+            throw new common_1.BadRequestException('Manager ID not found in token');
+        }
         const manager = await this.stageService.getManager(managerId);
         if (!manager) {
             throw new common_1.BadRequestException('Менеджер не найден');
@@ -54,13 +59,13 @@ let CallController = class CallController {
             notes: 'Звонок начат вручную',
         });
         await this.stageService.updateLeadStatus(leadId, 'in_work');
-        await this.auditService.logAction((_a = req.user) === null || _a === void 0 ? void 0 : _a.id, 'POST', '/call/start', body, 'call_start', result.id, `Менеджер ${managerId} начал звонок по лиду ${leadId}`);
+        await this.auditService.logAction((_b = req.user) === null || _b === void 0 ? void 0 : _b.id, 'POST', '/call/start', { leadId }, 'call_start', result.id, `Менеджер ${managerId} начал звонок по лиду ${leadId}`);
         return result;
     }
     async endCall(req, body) {
-        var _a;
-        const result = await this.stageService.completeStage(body.stageId);
-        await this.auditService.logAction((_a = req.user) === null || _a === void 0 ? void 0 : _a.id, 'POST', '/call/end', body, 'call_end', result.id, `Звонок завершён. Этап ID ${result.id}`);
+        const user = req.user;
+        const result = await this.stageService.completeStageByLeadId(body.leadId, user);
+        await this.auditService.logAction(user === null || user === void 0 ? void 0 : user.id, 'POST', '/call/end', body, 'call_end', result.id, `Звонок завершён. Этап ID ${result.id} по лиду ID ${body.leadId}`);
         return result;
     }
 };
@@ -75,6 +80,7 @@ __decorate([
 ], CallController.prototype, "startCall", null);
 __decorate([
     (0, common_1.Post)('end'),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
     __param(0, (0, common_1.Req)()),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),

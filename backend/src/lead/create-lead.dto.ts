@@ -1,13 +1,17 @@
-import { IsOptional, IsString, IsEmail, IsEnum } from 'class-validator';
+import { IsNotEmpty, IsOptional, IsString, IsEmail, IsEnum, IsNumber } from 'class-validator';
 
 export class CreateLeadDto {
   @IsOptional()
   @IsString()
   full_name?: string;
 
-  @IsOptional()
+  @IsNotEmpty()
   @IsString()
   phone?: string;
+
+  @IsNotEmpty()
+  @IsNumber()
+  call_center: number;
 
   @IsOptional()
   @IsEmail()
@@ -52,8 +56,4 @@ export class CreateLeadDto {
   @IsOptional()
   @IsString()
   source_subid?: string;
-
-  @IsOptional()
-  @IsString()
-  notes?: string;
 }

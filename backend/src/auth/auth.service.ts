@@ -33,7 +33,9 @@ export class AuthService {
             password: hashedPassword,
             role: dto.role,
             managerLevel: dto.role === 'manager' ? dto.managerLevel ?? 1 : undefined,
+            callCenter: dto.role === 'manager' ? dto.callCenter ?? 1 : undefined,
         });
+
 
         return this.userRepository.save(user);
     }
@@ -41,7 +43,8 @@ export class AuthService {
     async login(dto: LoginDto): Promise<{ access_token: string }> {
         console.log('Login attempt:', dto.name);
         const user = await this.userRepository.findOne({
-            where: { name: dto.name },
+        where: { name: dto.name },
+        select: ['id', 'name', 'password', 'role', 'managerLevel', 'callCenter'],
         });
 
         if (!user) {
@@ -58,6 +61,8 @@ export class AuthService {
             sub: user.id,
             name: user.name,
             role: user.role,
+            managerLevel: user.managerLevel,
+            callCenter: user.callCenter,
         };
 
         const token = await this.jwtService.signAsync(payload);

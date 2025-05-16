@@ -21,9 +21,14 @@ __decorate([
     __metadata("design:type", Number)
 ], OwnerBonus.prototype, "id", void 0);
 __decorate([
-    (0, typeorm_1.ManyToOne)(() => user_entity_1.User),
+    (0, typeorm_1.ManyToOne)(() => user_entity_1.User, { eager: true }),
+    (0, typeorm_1.JoinColumn)({ name: 'ownerId' }),
     __metadata("design:type", user_entity_1.User)
 ], OwnerBonus.prototype, "owner", void 0);
+__decorate([
+    (0, typeorm_1.Column)(),
+    __metadata("design:type", Number)
+], OwnerBonus.prototype, "ownerId", void 0);
 __decorate([
     (0, typeorm_1.ManyToOne)(() => lead_entity_1.Lead),
     __metadata("design:type", lead_entity_1.Lead)

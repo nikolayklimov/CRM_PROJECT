@@ -55,6 +55,32 @@ let StageService = class StageService {
             relations: ['lead'],
         });
     }
+    async completeStageByLeadId(leadId, user) {
+        const stage = await this.stageRepository.findOne({
+            where: {
+                lead: { id: leadId },
+                manager: { id: user.id },
+                status: stage_entity_1.StageStatus.ACTIVE,
+            },
+            relations: ['lead', 'manager'],
+        });
+        if (!stage) {
+            throw new common_1.ForbiddenException(`Нет доступа к лидам или активная стадия не найдена`);
+        }
+        const lead = stage.lead;
+        const canAccess = user.role === 'admin' || user.role === 'owner' ||
+            (user.role === 'manager' &&
+                lead.visible_to_level === user.managerLevel &&
+                lead.assigned_to === user.id &&
+                lead.status !== 'closed');
+        if (!canAccess) {
+            throw new common_1.ForbiddenException('Нет доступа к этому лиду');
+        }
+        stage.status = stage_entity_1.StageStatus.COMPLETED;
+        stage.finished_at = new Date();
+        stage.duration_seconds = Math.floor((+stage.finished_at - +stage.started_at) / 1000);
+        return this.stageRepository.save(stage);
+    }
 };
 exports.StageService = StageService;
 exports.StageService = StageService = __decorate([

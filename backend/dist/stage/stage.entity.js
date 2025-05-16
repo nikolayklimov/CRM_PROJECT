@@ -34,18 +34,16 @@ __decorate([
     __metadata("design:type", Number)
 ], Stage.prototype, "id", void 0);
 __decorate([
-    (0, typeorm_1.Column)({
-        type: 'enum',
-        enum: StageType,
-    }),
+    (0, typeorm_1.Column)({ type: 'enum', enum: StageType }),
+    (0, typeorm_1.Index)(),
     __metadata("design:type", String)
 ], Stage.prototype, "type", void 0);
 __decorate([
-    (0, typeorm_1.ManyToOne)(() => lead_entity_1.Lead, (lead) => lead.stages, { onDelete: 'CASCADE' }),
+    (0, typeorm_1.ManyToOne)(() => lead_entity_1.Lead, (lead) => lead.stages, { onDelete: 'CASCADE', nullable: false }),
     __metadata("design:type", lead_entity_1.Lead)
 ], Stage.prototype, "lead", void 0);
 __decorate([
-    (0, typeorm_1.ManyToOne)(() => user_entity_1.User, (user) => user.stages),
+    (0, typeorm_1.ManyToOne)(() => user_entity_1.User, (user) => user.stages, { nullable: false }),
     __metadata("design:type", user_entity_1.User)
 ], Stage.prototype, "manager", void 0);
 __decorate([

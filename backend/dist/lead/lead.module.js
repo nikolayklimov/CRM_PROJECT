@@ -17,13 +17,24 @@ const bonus_module_1 = require("../bonus/bonus.module");
 const user_entity_1 = require("../user/user.entity");
 const owner_bonus_entity_1 = require("../bonus/owner-bonus.entity");
 const manager_bonus_entity_1 = require("../bonus/manager-bonus.entity");
+const lead_note_entity_1 = require("./lead-note/lead-note.entity");
+const lead_change_log_entity_1 = require("./lead-change-log.entity");
+const daily_bonus_summary_entity_1 = require("../bonus/daily-bonus-summary.entity");
 let LeadModule = class LeadModule {
 };
 exports.LeadModule = LeadModule;
 exports.LeadModule = LeadModule = __decorate([
     (0, common_1.Module)({
         imports: [
-            typeorm_1.TypeOrmModule.forFeature([lead_entity_1.Lead, manager_bonus_entity_1.ManagerBonus, owner_bonus_entity_1.OwnerBonus, user_entity_1.User,]),
+            typeorm_1.TypeOrmModule.forFeature([
+                lead_entity_1.Lead,
+                manager_bonus_entity_1.ManagerBonus,
+                owner_bonus_entity_1.OwnerBonus,
+                user_entity_1.User,
+                lead_note_entity_1.LeadNote,
+                lead_change_log_entity_1.LeadChangeLog,
+                daily_bonus_summary_entity_1.DailyBonusSummary,
+            ]),
             audit_log_module_1.AuditLogModule,
             bonus_module_1.BonusModule,
         ],

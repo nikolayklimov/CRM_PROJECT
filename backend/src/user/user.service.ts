@@ -20,7 +20,14 @@ export class UserService {
   }
 
   async createUser(dto: CreateUserDto): Promise<User> {
-    const user = this.userRepository.create(dto);
+    const user = this.userRepository.create({
+      name: dto.name,
+      email: dto.email,
+      password: dto.password,
+      role: dto.role,
+      managerLevel: dto.role === 'manager' ? dto.managerLevel ?? 1 : undefined,
+      callCenter: dto.role === 'manager' ? dto.callCenter ?? 1 : undefined,
+    });
     return this.userRepository.save(user);
   }
 

@@ -12,6 +12,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.Lead = void 0;
 const typeorm_1 = require("typeorm");
 const stage_entity_1 = require("../stage/stage.entity");
+const user_entity_1 = require("../user/user.entity");
 let Lead = class Lead {
 };
 exports.Lead = Lead;
@@ -76,10 +77,6 @@ __decorate([
     __metadata("design:type", String)
 ], Lead.prototype, "source_subid", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ nullable: true, type: 'text' }),
-    __metadata("design:type", String)
-], Lead.prototype, "notes", void 0);
-__decorate([
     (0, typeorm_1.OneToMany)(() => stage_entity_1.Stage, (stage) => stage.lead, { cascade: true }),
     __metadata("design:type", Array)
 ], Lead.prototype, "stages", void 0);
@@ -96,6 +93,11 @@ __decorate([
     __metadata("design:type", Object)
 ], Lead.prototype, "assigned_to", void 0);
 __decorate([
+    (0, typeorm_1.ManyToOne)(() => user_entity_1.User, { nullable: true }),
+    (0, typeorm_1.JoinColumn)({ name: 'assigned_to' }),
+    __metadata("design:type", user_entity_1.User)
+], Lead.prototype, "assignedManager", void 0);
+__decorate([
     (0, typeorm_1.Column)({ type: 'int', default: 1 }),
     __metadata("design:type", Number)
 ], Lead.prototype, "visible_to_level", void 0);
@@ -103,6 +105,26 @@ __decorate([
     (0, typeorm_1.Column)({ type: 'float', nullable: true }),
     __metadata("design:type", Number)
 ], Lead.prototype, "profit", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: 'int', nullable: true }),
+    __metadata("design:type", Number)
+], Lead.prototype, "manager1Id", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: 'int', nullable: true }),
+    __metadata("design:type", Number)
+], Lead.prototype, "manager2Id", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: 'int', nullable: true }),
+    __metadata("design:type", Number)
+], Lead.prototype, "manager3Id", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: 'int', nullable: true }),
+    __metadata("design:type", Number)
+], Lead.prototype, "call_center", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: 'enum', enum: ['success', 'fail'], nullable: true }),
+    __metadata("design:type", String)
+], Lead.prototype, "result_status", void 0);
 exports.Lead = Lead = __decorate([
     (0, typeorm_1.Entity)()
 ], Lead);
